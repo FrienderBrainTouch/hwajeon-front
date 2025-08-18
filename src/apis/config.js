@@ -1,0 +1,57 @@
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+
+// 환경별 로그
+console.log(`🌍 ${process.env.NODE_ENV === 'production' ? '배포' : '개발'} 환경`);
+console.log(`🔗 API URL: ${API_BASE_URL}`);
+
+// 토큰 만료 시 자동 로그아웃을 위한 콜백 함수
+let onTokenExpired = null;
+
+// 토큰 만료 콜백 설정 함수
+export const setTokenExpiredCallback = (callback) => {
+  onTokenExpired = callback;
+};
+
+// API 요청에 사용할 기본 헤더
+export const getHeaders = () => {
+  const token = localStorage.getItem('accessToken');
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
+
+// API 응답 처리 및 토큰 만료 감지
+export const handleApiResponse = async (response) => {
+  if (response.status === 401) {
+    try {
+      const errorData = await response.json();
+      if (errorData.error === 'token_expired' || errorData.message === 'token_expired') {
+        console.log('토큰이 만료되었습니다. 자동 로그아웃을 실행합니다.');
+        if (onTokenExpired) {
+          onTokenExpired();
+        }
+        return { isTokenExpired: true, response };
+      }
+    } catch (error) {
+      console.error('에러 응답 파싱 실패:', error);
+    }
+  }
+  return { isTokenExpired: false, response };
+};
+
+// 공통 fetch 함수 (토큰 만료 감지 포함)
+export const apiFetch = async (url, options = {}) => {
+  const response = await fetch(url, {
+    ...options,
+    headers: getHeaders(),
+  });
+  
+  const { isTokenExpired } = await handleApiResponse(response);
+  
+  if (isTokenExpired) {
+    throw new Error('TOKEN_EXPIRED');
+  }
+  
+  return response;
+};
