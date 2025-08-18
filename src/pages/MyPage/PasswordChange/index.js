@@ -99,7 +99,7 @@ function PasswordChangePage() {
     newPassword: '',
     confirmPassword: ''
   });
-  const [error, setError] = useState('');
+  const [, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;

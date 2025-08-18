@@ -22,21 +22,21 @@ const Content = styled.div`
   padding: 0 var(--spacing-medium);
 `;
 
-const PageTitle = styled.h1`
-  font-family: 'Noto Sans KR', sans-serif;
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  text-align: center;
-  margin: 0 0 var(--spacing-medium) 0;
-`;
+// const PageTitle = styled.h1`
+//   font-family: 'Noto Sans KR', sans-serif;
+//   font-size: 28px;
+//   font-weight: 600;
+//   color: var(--color-text-primary);
+//   text-align: center;
+//   margin: 0 0 var(--spacing-medium) 0;
+// `;
 
-const Divider = styled.div`
-  width: 100%;
-  height: 1px;
-  background-color: #E9E9E9;
-  margin-bottom: var(--spacing-large);
-`;
+// const Divider = styled.div`
+//   width: 100%;
+//   height: 1px;
+//   background-color: #E9E9E9;
+//   margin-bottom: var(--spacing-large);
+// `;
 
 const SectionTitle = styled.h2`
   font-family: 'Noto Sans KR', sans-serif;

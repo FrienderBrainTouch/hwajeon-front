@@ -44,11 +44,10 @@ const TextContainer = styled.div`
 
 
 
-const MusicCard = ({ imageUrl, title, artist, owner, onClick }) => {
+const MusicCard = ({ imageUrl, title, artist, onClick }) => {
   // undefined 값들을 안전하게 처리
   const safeTitle = title || '제목 없음';
   const safeArtist = artist || '아티스트 없음';
-  const safeOwner = owner || '';
   const safeImageUrl = imageUrl || '';
 
   return (
