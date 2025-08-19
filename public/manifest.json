@@ -1,6 +1,6 @@
 {
-  "short_name": "화재전",
-  "name": "화재전 - 음악 스트리밍 앱",
+  "short_name": "화전마을",
+  "name": "화전마을 - 음악 스트리밍 앱",
   "description": "개인 음악 스트리밍 및 플레이리스트 관리 앱",
   "icons": [
     {
@@ -9,13 +9,13 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "icons/music/thumbnail.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "logo512.png",
+      "src": "icons/music/thumbnail.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"

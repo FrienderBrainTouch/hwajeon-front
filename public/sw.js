@@ -4,9 +4,8 @@ const urlsToCache = [
   '/static/js/bundle.js',
   '/static/css/main.css',
   '/manifest.json',
-  '/favicon.ico',
-  '/logo192.png',
-  '/logo512.png'
+  '/icons/music/thumbnail.png',
+  '/favicon.ico'
 ];
 
 // Service Worker 설치
