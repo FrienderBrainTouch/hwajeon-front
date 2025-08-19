@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "store.hwajeon.twa",
+    "sha256_cert_fingerprints": ["DF:C9:D7:3C:D7:29:E4:F2:3F:1A:FA:A6:16:CE:48:E2:A1:75:B1:CB:D1:AF:AE:A1:8C:B3:98:12:EE:F7:34:42"]
+  }
+}]
