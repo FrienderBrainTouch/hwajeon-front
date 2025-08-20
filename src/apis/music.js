@@ -1,27 +1,5 @@
 import { API_BASE_URL, getHeaders, apiFetch } from './config';
 
-// 음악 목록 조회
-export const getMusicList = async () => {
-  const response = await apiFetch(`${API_BASE_URL}/music/list`);
-
-  if (!response.ok) {
-    throw new Error('Failed to get music list');
-  }
-
-  return response.json();
-};
-
-// 음악 검색 (기존)
-export const searchMusic = async (keyword) => {
-  const response = await apiFetch(`${API_BASE_URL}/music/search?keyword=${encodeURIComponent(keyword)}`);
-
-  if (!response.ok) {
-    throw new Error('Failed to search music');
-  }
-
-  return response.json();
-};
-
 // 새로운 검색 API
 export const searchMusicByKeywords = async (keywords) => {
   const response = await apiFetch(`${API_BASE_URL}/api/matches?keywords=${encodeURIComponent(keywords)}`);
@@ -57,8 +35,8 @@ export const toggleLike = async (musicId) => {
   return response.json();
 };
 
-// 음악 파일 업로드
-export const uploadMusic = async (files, creator = null) => {
+// 음악 파일 업로드 (TEACHER 권한용)
+export const uploadMusic = async (files, userId = null) => {
   const formData = new FormData();
   
   // 파일들을 FormData에 추가
@@ -66,18 +44,25 @@ export const uploadMusic = async (files, creator = null) => {
     formData.append('files', file.file);
   });
   
-  // 만든 사람 정보가 있으면 추가
-  if (creator) {
-    formData.append('creator', creator);
+  // TEACHER 권한일 때 userId가 있으면 해당 사용자로 업로드
+  if (userId) {
+    formData.append('userId', userId);
   }
 
   // FormData를 사용할 때는 Content-Type을 자동으로 설정하도록 헤더에서 제거
+  // 하지만 Authorization 토큰은 유지해야 함
   const headers = getHeaders();
   delete headers['Content-Type'];
 
-  const response = await fetch(`${API_BASE_URL}/api/musics`, {
+  // TEACHER 권한일 때는 api/musics/{userId} 엔드포인트 사용
+  // 일반 유저일 때는 api/musics 엔드포인트 사용 (토큰에서 사용자 정보 추출)
+  const uploadUrl = userId 
+    ? `${API_BASE_URL}/api/musics/${userId}`
+    : `${API_BASE_URL}/api/musics`;
+
+  const response = await fetch(uploadUrl, {
     method: 'POST',
-    headers,
+    headers, // Authorization 토큰 포함
     body: formData,
   });
 
@@ -193,5 +178,75 @@ export const getPlayHistory = async (page = 0, size = 5) => {
   } catch (error) {
     console.error('Failed to get play history:', error);
     throw error;
+  }
+};
+
+// 사용자 목록 조회 (TEACHER 권한만)
+export const getAllUsers = async () => {
+  const response = await apiFetch(`${API_BASE_URL}/api/users/all`);
+
+  if (!response.ok) {
+    throw new Error('Failed to get users list');
+  }
+
+  return response.json();
+};
+
+// 음악 파일 목록 조회 (TEACHER 권한만) - Pageable 적용
+export const getAllMusicFiles = async (page = 0, size = 10) => {
+  const response = await apiFetch(`${API_BASE_URL}/api/matches/manage?page=${page}&size=${size}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to get music files list');
+  }
+
+  return response.json();
+};
+
+// 음악 파일 삭제 (TEACHER 권한만)
+export const deleteMusicFile = async (musicId) => {
+  const response = await apiFetch(`${API_BASE_URL}/api/musics/${musicId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete music file');
+  }
+
+  // 응답 본문이 비어있을 수 있으므로 안전하게 처리
+  try {
+    const responseText = await response.text();
+    if (responseText.trim()) {
+      return JSON.parse(responseText);
+    }
+    return { success: true, message: '음악 파일이 성공적으로 삭제되었습니다.' };
+  } catch (error) {
+    return { success: true, message: '음악 파일이 성공적으로 삭제되었습니다.' };
+  }
+};
+
+// 음악 제목 수정 (TEACHER 권한만)
+export const updateMusicTitle = async (musicId, newTitle) => {
+  const response = await apiFetch(`${API_BASE_URL}/api/musics/${musicId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ newName: newTitle }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update music title');
+  }
+
+  // 응답 본문이 비어있을 수 있으므로 안전하게 처리
+  try {
+    const responseText = await response.text();
+    if (responseText.trim()) {
+      return JSON.parse(responseText);
+    }
+    return { success: true, message: '제목이 성공적으로 변경되었습니다.' };
+  } catch (error) {
+    return { success: true, message: '제목이 성공적으로 변경되었습니다.' };
   }
 };

@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import Header from '../../../components/common/Header';
-import { uploadMusic } from '../../../apis/music';
+import { uploadMusic, getAllUsers } from '../../../apis/music';
 
 const MainContainer = styled.div`
   width: 100%;
@@ -233,6 +233,32 @@ function UploadFilePage() {
   const [files, setFiles] = useState([]);
   const [selectedCreator, setSelectedCreator] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [usersError, setUsersError] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState('');
+
+  // TEACHER 권한일 때 사용자 목록 가져오기
+  useEffect(() => {
+    if (userRole === 'TEACHER') {
+      fetchUsers();
+    }
+  }, [userRole]);
+
+  const fetchUsers = async () => {
+    setIsLoadingUsers(true);
+    setUsersError(null);
+    
+    try {
+      const usersData = await getAllUsers();
+      setUsers(usersData);
+    } catch (error) {
+      console.error('사용자 목록 조회 실패:', error);
+      setUsersError('사용자 목록을 불러오는데 실패했습니다.');
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
 
   const handleFileSelect = (selectedFiles) => {
     const newFiles = Array.from(selectedFiles).map(file => ({
@@ -319,8 +345,10 @@ function UploadFilePage() {
     }
 
     try {
-      // 실제 파일 업로드 API 호출
-      await uploadMusic(files, selectedCreator);
+      // TEACHER 권한일 때는 selectedUserId, 일반 유저일 때는 null 전달
+      // TEACHER: api/users/{userId} 호출, 일반 유저: api/musics 호출 (토큰에서 사용자 정보 추출)
+      const userIdToSend = userRole === 'TEACHER' ? selectedUserId : null;
+      await uploadMusic(files, userIdToSend);
       
       // 업로드 완료 후 처리
       alert('파일 업로드가 완료되었습니다.');
@@ -328,6 +356,19 @@ function UploadFilePage() {
     } catch (error) {
       console.error('Upload failed:', error);
       alert('파일 업로드에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleCreatorChange = (e) => {
+    const selectedValue = e.target.value;
+    setSelectedCreator(selectedValue);
+    
+    // 선택된 사용자의 userId 찾기
+    if (selectedValue) {
+      const selectedUser = users.find(user => user.userId.toString() === selectedValue);
+      setSelectedUserId(selectedUser ? selectedUser.userId : '');
+    } else {
+      setSelectedUserId('');
     }
   };
 
@@ -383,16 +424,39 @@ function UploadFilePage() {
           {userRole === 'TEACHER' && (
             <CreatorSection>
               <SectionTitle>만든 사람</SectionTitle>
-              <Select 
-                value={selectedCreator} 
-                onChange={(e) => setSelectedCreator(e.target.value)}
-              >
-                <option value="">선택해주세요</option>
-                <option value="user">본인</option>
-                <option value="student1">학생 1</option>
-                <option value="student2">학생 2</option>
-                <option value="student3">학생 3</option>
-              </Select>
+              {isLoadingUsers ? (
+                <p>사용자 목록을 불러오는 중입니다...</p>
+              ) : usersError ? (
+                <div>
+                  <p style={{ color: 'red' }}>{usersError}</p>
+                  <button 
+                    onClick={fetchUsers}
+                    style={{ 
+                      marginTop: '8px',
+                      padding: '8px 16px',
+                      backgroundColor: '#1976d2',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              ) : (
+                <Select 
+                  value={selectedCreator} 
+                  onChange={handleCreatorChange}
+                >
+                  <option value="">선택해주세요</option>
+                  {users.map(user => (
+                    <option key={user.userId} value={user.userId}>
+                      {user.userName}({user.loginId})
+                    </option>
+                  ))}
+                </Select>
+              )}
             </CreatorSection>
           )}
 

@@ -13,7 +13,10 @@ import PasswordChangePage from './pages/MyPage/PasswordChange';
 import WithdrawPage from './pages/MyPage/Withdraw';
 import UploadPage from './pages/MyPage/Upload';
 import UploadFilePage from './pages/MyPage/UploadFile';
+import UsersPage from './pages/Users';
+import FilesPage from './pages/Files';
 import PrivateRoute from './components/common/PrivateRoute';
+import TeacherRoute from './components/common/TeacherRoute';
 
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
@@ -91,6 +94,8 @@ const AppContent = () => {
             <Route path="/mypage/withdraw" element={<PrivateRoute><WithdrawPage /></PrivateRoute>} />
             <Route path="/mypage/upload" element={<PrivateRoute><UploadPage /></PrivateRoute>} />
             <Route path="/mypage/upload-file" element={<PrivateRoute><UploadFilePage /></PrivateRoute>} />
+            <Route path="/users" element={<TeacherRoute><UsersPage /></TeacherRoute>} />
+            <Route path="/files" element={<TeacherRoute><FilesPage /></TeacherRoute>} />
           </Routes>
         </PageContainer>
       )}
