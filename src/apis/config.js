@@ -1,4 +1,20 @@
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+// 환경별 API 주소 설정
+const getApiBaseUrl = () => {
+  // 개발 환경 (npm start) - 로컬 API 사용
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:8080';
+  }
+  
+  // 배포 환경 (npm run build) - 환경 변수 또는 기본값 사용
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.REACT_APP_API_BASE_URL || 'https://api.hwajeon.store';
+  }
+  
+  // 기본값
+  return 'http://localhost:8080';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 // 환경별 로그
 console.log(`🌍 ${process.env.NODE_ENV === 'production' ? '배포' : '개발'} 환경`);
