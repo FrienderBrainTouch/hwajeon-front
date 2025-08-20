@@ -57,8 +57,8 @@ export const toggleLike = async (musicId) => {
   return response.json();
 };
 
-// 음악 파일 업로드
-export const uploadMusic = async (files, creator = null) => {
+// 음악 파일 업로드 (TEACHER 권한용)
+export const uploadMusic = async (files, userId = null) => {
   const formData = new FormData();
   
   // 파일들을 FormData에 추가
@@ -66,18 +66,25 @@ export const uploadMusic = async (files, creator = null) => {
     formData.append('files', file.file);
   });
   
-  // 만든 사람 정보가 있으면 추가
-  if (creator) {
-    formData.append('creator', creator);
+  // TEACHER 권한일 때 userId가 있으면 해당 사용자로 업로드
+  if (userId) {
+    formData.append('userId', userId);
   }
 
   // FormData를 사용할 때는 Content-Type을 자동으로 설정하도록 헤더에서 제거
+  // 하지만 Authorization 토큰은 유지해야 함
   const headers = getHeaders();
   delete headers['Content-Type'];
 
-  const response = await fetch(`${API_BASE_URL}/api/musics`, {
+  // TEACHER 권한일 때는 api/musics/{userId} 엔드포인트 사용
+  // 일반 유저일 때는 api/musics 엔드포인트 사용 (토큰에서 사용자 정보 추출)
+  const uploadUrl = userId 
+    ? `${API_BASE_URL}/api/musics/${userId}`
+    : `${API_BASE_URL}/api/musics`;
+
+  const response = await fetch(uploadUrl, {
     method: 'POST',
-    headers,
+    headers, // Authorization 토큰 포함
     body: formData,
   });
 
@@ -194,4 +201,15 @@ export const getPlayHistory = async (page = 0, size = 5) => {
     console.error('Failed to get play history:', error);
     throw error;
   }
+};
+
+// 사용자 목록 조회 (TEACHER 권한만)
+export const getAllUsers = async () => {
+  const response = await apiFetch(`${API_BASE_URL}/api/users/all`);
+
+  if (!response.ok) {
+    throw new Error('Failed to get users list');
+  }
+
+  return response.json();
 };
