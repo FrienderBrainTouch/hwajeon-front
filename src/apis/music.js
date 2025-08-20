@@ -1,27 +1,5 @@
 import { API_BASE_URL, getHeaders, apiFetch } from './config';
 
-// 음악 목록 조회
-export const getMusicList = async () => {
-  const response = await apiFetch(`${API_BASE_URL}/music/list`);
-
-  if (!response.ok) {
-    throw new Error('Failed to get music list');
-  }
-
-  return response.json();
-};
-
-// 음악 검색 (기존)
-export const searchMusic = async (keyword) => {
-  const response = await apiFetch(`${API_BASE_URL}/music/search?keyword=${encodeURIComponent(keyword)}`);
-
-  if (!response.ok) {
-    throw new Error('Failed to search music');
-  }
-
-  return response.json();
-};
-
 // 새로운 검색 API
 export const searchMusicByKeywords = async (keywords) => {
   const response = await apiFetch(`${API_BASE_URL}/api/matches?keywords=${encodeURIComponent(keywords)}`);
@@ -212,4 +190,63 @@ export const getAllUsers = async () => {
   }
 
   return response.json();
+};
+
+// 음악 파일 목록 조회 (TEACHER 권한만) - Pageable 적용
+export const getAllMusicFiles = async (page = 0, size = 10) => {
+  const response = await apiFetch(`${API_BASE_URL}/api/matches/manage?page=${page}&size=${size}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to get music files list');
+  }
+
+  return response.json();
+};
+
+// 음악 파일 삭제 (TEACHER 권한만)
+export const deleteMusicFile = async (musicId) => {
+  const response = await apiFetch(`${API_BASE_URL}/api/musics/${musicId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete music file');
+  }
+
+  // 응답 본문이 비어있을 수 있으므로 안전하게 처리
+  try {
+    const responseText = await response.text();
+    if (responseText.trim()) {
+      return JSON.parse(responseText);
+    }
+    return { success: true, message: '음악 파일이 성공적으로 삭제되었습니다.' };
+  } catch (error) {
+    return { success: true, message: '음악 파일이 성공적으로 삭제되었습니다.' };
+  }
+};
+
+// 음악 제목 수정 (TEACHER 권한만)
+export const updateMusicTitle = async (musicId, newTitle) => {
+  const response = await apiFetch(`${API_BASE_URL}/api/musics/${musicId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ newName: newTitle }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update music title');
+  }
+
+  // 응답 본문이 비어있을 수 있으므로 안전하게 처리
+  try {
+    const responseText = await response.text();
+    if (responseText.trim()) {
+      return JSON.parse(responseText);
+    }
+    return { success: true, message: '제목이 성공적으로 변경되었습니다.' };
+  } catch (error) {
+    return { success: true, message: '제목이 성공적으로 변경되었습니다.' };
+  }
 };
