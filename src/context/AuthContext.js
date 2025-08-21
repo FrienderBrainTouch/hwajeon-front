@@ -24,6 +24,28 @@ export const AuthProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState(null);
   const [showTokenExpiredModal, setShowTokenExpiredModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
+
+  // 토큰 파싱 및 사용자 정보 설정 함수
+  const parseTokenAndSetUserInfo = useCallback((accessToken) => {
+    if (!accessToken) {
+      setUserRole(null);
+      setUserName(null);
+      setIsLoading(false);
+      return;
+    }
+
+    const decoded = parseJwt(accessToken);
+    if (decoded) {
+      if (decoded.role) {
+        setUserRole(decoded.role);
+      }
+      if (decoded.realName || decoded.username) {
+        setUserName(decoded.realName || decoded.username);
+      }
+    }
+    setIsLoading(false);
+  }, []);
 
   // 토큰 만료 시 자동 로그아웃 처리
   const handleTokenExpired = useCallback(() => {
@@ -41,16 +63,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('accessToken', accessToken);
     setToken(accessToken);
     setIsAuthenticated(true);
-    
-    const decoded = parseJwt(accessToken);
-    if (decoded) {
-      if (decoded.role) {
-        setUserRole(decoded.role);
-      }
-      if (decoded.realName || decoded.username) {
-        setUserName(decoded.realName || decoded.username);
-      }
-    }
+    setIsLoading(true);
+    parseTokenAndSetUserInfo(accessToken);
   };
 
   // 토큰 제거 및 인증 상태 초기화
@@ -66,6 +80,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       setUserRole(null);
       setUserName(null);
+      setIsLoading(false);
 
       // 브라우저 캐시 초기화 및 뒤로가기 방지
       if (window.history && window.history.pushState) {
@@ -85,6 +100,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       setUserRole(null);
       setUserName(null);
+      setIsLoading(false);
       window.location.replace('/login');
     }
   };
@@ -95,18 +111,11 @@ export const AuthProvider = ({ children }) => {
     if (storedToken) {
       setToken(storedToken);
       setIsAuthenticated(true);
-      
-      const decoded = parseJwt(storedToken);
-      if (decoded) {
-        if (decoded.role) {
-          setUserRole(decoded.role);
-        }
-        if (decoded.realName || decoded.username) {
-          setUserName(decoded.realName || decoded.username);
-        }
-      }
+      parseTokenAndSetUserInfo(storedToken);
+    } else {
+      setIsLoading(false);
     }
-  }, []);
+  }, [parseTokenAndSetUserInfo]);
 
   // 토큰 만료 콜백 설정
   useEffect(() => {
@@ -120,6 +129,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated,
         userRole,
         userName,
+        isLoading,
         login,
         logout,
       }}
