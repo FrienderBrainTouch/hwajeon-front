@@ -29,6 +29,15 @@ const PageTitle = styled.h1`
   text-align: center;
 `;
 
+const GuideText = styled.p`
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  margin: 0 0 24px 0;
+  line-height: 1.4;
+`;
+
 const SearchSection = styled.div`
   width: 100%;
   margin-bottom: 24px;
@@ -134,27 +143,6 @@ const EmptyState = styled.div`
   color: #666;
 `;
 
-const EditModeButton = styled.button`
-  padding: 8px 16px;
-  background-color: #1e88e5;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin-bottom: 16px;
-  
-  &:hover {
-    background-color: #1976d2;
-  }
-  
-  &.active {
-    background-color: #f44336;
-  }
-`;
-
 const EditModal = styled.div`
   position: fixed;
   top: 0;
@@ -239,22 +227,11 @@ const ModalButton = styled.button`
   }}
 `;
 
-const SelectableRow = styled(TableRow)`
-  cursor: pointer;
-  
-  ${props => props.isSelected && `
-    background-color: rgba(30, 136, 229, 0.1);
-    border: 2px solid var(--color-primary);
-  `}
-`;
-
-
 
 function UsersPage() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isEditMode, setIsEditMode] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [newName, setNewName] = useState('');
@@ -296,19 +273,10 @@ function UsersPage() {
     // 검색 로직은 이미 useEffect에서 처리됨
   };
 
-  const toggleEditMode = () => {
-    setIsEditMode(!isEditMode);
-    if (isEditMode) {
-      setSelectedUser(null);
-    }
-  };
-
   const handleUserSelect = (user) => {
-    if (isEditMode) {
-      setSelectedUser(user);
-      setNewName(user.userName);
-      setShowModal(true);
-    }
+    setSelectedUser(user);
+    setNewName(user.userName);
+    setShowModal(true);
   };
 
   const handleNameUpdate = async () => {
@@ -343,7 +311,6 @@ function UsersPage() {
       setShowModal(false);
       setSelectedUser(null);
       setNewName('');
-      setIsEditMode(false);
       
     } catch (error) {
       console.error('이름 변경 실패:', error);
@@ -356,7 +323,6 @@ function UsersPage() {
     setShowModal(false);
     setSelectedUser(null);
     setNewName('');
-    setIsEditMode(false);
   };
 
   // TeacherRoute에서 이미 권한을 체크하므로 여기서는 제거
@@ -368,13 +334,9 @@ function UsersPage() {
         <Content>
           <PageTitle>회원 관리</PageTitle>
           
-          <EditModeButton 
-            onClick={toggleEditMode}
-            className={isEditMode ? 'active' : ''}
-            style={{ border: '2px solid red' }}
-          >
-            {isEditMode ? '수정 모드 종료' : '수정'}
-          </EditModeButton>
+          <GuideText>
+            사용자 이름을 클릭하시면 이름을 변경하실 수 있습니다.
+          </GuideText>
           
           <SearchSection>
             <SearchInput
@@ -396,17 +358,16 @@ function UsersPage() {
             
             {filteredUsers.length > 0 ? (
               filteredUsers.map(user => (
-                <SelectableRow 
+                <TableRow 
                   key={user.userId}
                   onClick={() => handleUserSelect(user)}
-                  isSelected={selectedUser?.userId === user.userId}
                 >
                   <UserInfo>
                     <UserName>{user.userName}</UserName>
                   </UserInfo>
                   
                   <div>{user.loginId}</div>
-                </SelectableRow>
+                </TableRow>
               ))
             ) : (
               <EmptyState>
