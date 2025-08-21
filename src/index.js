@@ -15,7 +15,7 @@ root.render(
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
 
-// PWA Service Worker 등록 및 업데이트 관리
+// PWA Service Worker 등록 및 자동 캐시 최신화 (TWA용)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
@@ -30,14 +30,11 @@ if ('serviceWorker' in navigator) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // 새로운 서비스 워커가 설치되었고, 현재 페이지가 서비스 워커에 의해 제어되고 있음
-              console.log('New content is available; please refresh.');
+              console.log('New content is available; updating cache...');
               
-              // 사용자에게 업데이트 알림을 표시하거나 자동으로 새로고침
-              if (confirm('새로운 버전이 있습니다. 지금 업데이트하시겠습니까?')) {
-                // 강제로 새로운 서비스 워커 활성화
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
-                window.location.reload();
-              }
+              // TWA용: 사용자에게 알림 없이 자동으로 캐시 최신화
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+              window.location.reload();
             }
           });
         });
@@ -45,8 +42,6 @@ if ('serviceWorker' in navigator) {
         // 서비스 워커가 제어하는 페이지에서 새로운 서비스 워커가 활성화될 때
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           console.log('New service worker activated');
-          // 필요시 페이지 새로고침
-          // window.location.reload();
         });
       })
       .catch((registrationError) => {

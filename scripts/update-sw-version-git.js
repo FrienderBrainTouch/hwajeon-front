@@ -41,8 +41,22 @@ function updateServiceWorkerVersion() {
       const oldVersion = match[1];
       const newVersion = generateGitVersion();
       
+      // 현재 타임스탬프
+      const timestamp = new Date().toISOString();
+      
       // 버전 교체
       content = content.replace(versionRegex, `const CACHE_NAME = '${newVersion}';`);
+      
+      // 파일 상단에 타임스탬프 주석 추가/업데이트
+      const timestampComment = `// Last updated: ${timestamp}\n`;
+      
+      // 기존 타임스탬프 주석이 있는지 확인하고 교체
+      if (content.includes('// Last updated:')) {
+        content = content.replace(/\/\/ Last updated: .*\n/, timestampComment);
+      } else {
+        // 파일 맨 위에 타임스탬프 주석 추가
+        content = timestampComment + content;
+      }
       
       // 파일에 쓰기
       fs.writeFileSync(swPath, content, 'utf8');
@@ -50,6 +64,7 @@ function updateServiceWorkerVersion() {
       console.log(`✅ Service Worker 버전 업데이트 완료:`);
       console.log(`   이전: ${oldVersion}`);
       console.log(`   새로운: ${newVersion}`);
+      console.log(`   타임스탬프: ${timestamp}`);
       
       // Git 정보 출력
       try {
