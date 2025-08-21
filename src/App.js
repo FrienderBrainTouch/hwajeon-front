@@ -83,7 +83,7 @@ const AppContent = () => {
             <Route path="/playlist" element={<PlaylistPage />} />
             <Route path="/playlist/my-music" element={<PlaylistPage />} />
             <Route path="/playlist/recent-music" element={<PlaylistPage />} />
-            <Route path="/playlist/favorites" element={<PlaylistPage />} />
+            <Route path="/playlist/favorites" element={<PlaylistPage />} /> 
             <Route path="/playlist/play-history" element={<PlayHistoryPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
