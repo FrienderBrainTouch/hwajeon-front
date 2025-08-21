@@ -2,33 +2,96 @@
   publish = "build"
   command = "npm run build"
 
+# 배포 전 스크립트 실행
+[build.environment]
+  NODE_VERSION = "18"
+
+# 배포 후 처리
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+
+# 배포 전 스크립트 실행을 위한 설정
+[context.production]
+  command = "npm run prebuild && npm run build"
+
+[context.deploy-preview]
+  command = "npm run prebuild && npm run build"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
+# --- 핵심 캐싱 전략 (서비스 워커와 호환) ---
+# index.html과 라우팅 페이지들 - 서비스 워커가 제어하도록 함
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # 서비스 워커가 캐싱을 제어하도록 설정
+    # Network First 전략을 위해 서버 캐싱은 최소화
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+# --- 정적 파일 캐싱 전략 ---
+# CRA 빌드 시 생성되는 정적 파일들 (JS, CSS) - 해시가 포함되어 안전
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# public 폴더의 정적 파일들
 [[headers]]
   for = "/manifest.json"
   [headers.values]
     Content-Type = "application/manifest+json"
+    Cache-Control = "public, max-age=86400"
 
+# 서비스 워커 파일 - 항상 최신 버전 확인
 [[headers]]
   for = "/sw.js"
   [headers.values]
-    Cache-Control = "no-cache"
+    Cache-Control = "no-cache, no-store, must-revalidate"
     Content-Type = "application/javascript"
 
-[[headers]]
-  for = "/*.js"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000"
-
-[[headers]]
-  for = "/*.css"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000"
-
+# 이미지 파일들
 [[headers]]
   for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/*.jpeg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/*.ico"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+# 폰트 파일들
+[[headers]]
+  for = "/*.woff"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/*.ttf"
   [headers.values]
     Cache-Control = "public, max-age=31536000"
