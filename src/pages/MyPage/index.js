@@ -290,8 +290,11 @@ function MyPage() {
   }, []);
 
   const handleLogout = async () => {
+    console.log('로그아웃 버튼 클릭됨');
     try {
+      console.log('AuthContext의 logout 함수 호출 시작');
       await logout();
+      console.log('AuthContext의 logout 함수 호출 완료');
       // 로그아웃 함수 내에서 리다이렉트를 처리하므로 여기서는 추가 처리 불필요
     } catch (error) {
       console.error('Logout error:', error);

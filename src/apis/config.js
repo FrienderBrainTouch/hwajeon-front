@@ -58,14 +58,21 @@ export const handleApiResponse = async (response) => {
 
 // 공통 fetch 함수 (토큰 만료 감지 포함)
 export const apiFetch = async (url, options = {}) => {
+  console.log('apiFetch 시작:', url);
+  console.log('apiFetch 옵션:', options);
+  console.log('현재 토큰:', localStorage.getItem('accessToken'));
+  
   const response = await fetch(url, {
     ...options,
     headers: getHeaders(),
   });
   
+  console.log('apiFetch 응답:', response.status, response.statusText);
+  
   const { isTokenExpired } = await handleApiResponse(response);
   
   if (isTokenExpired) {
+    console.log('토큰 만료 감지됨');
     throw new Error('TOKEN_EXPIRED');
   }
   

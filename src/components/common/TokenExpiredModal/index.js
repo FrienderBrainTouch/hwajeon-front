@@ -2,6 +2,13 @@ import React from 'react';
 import './styles.css';
 
 const TokenExpiredModal = ({ isVisible, onClose }) => {
+  const handleLoginRedirect = () => {
+    // 모달 닫기
+    onClose();
+    // 로그인 페이지로 이동
+    window.location.href = '/login';
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -17,7 +24,7 @@ const TokenExpiredModal = ({ isVisible, onClose }) => {
         <div className="modal-footer">
           <button 
             className="login-button"
-            onClick={() => window.location.href = '/login'}
+            onClick={handleLoginRedirect}
           >
             로그인 페이지로 이동
           </button>

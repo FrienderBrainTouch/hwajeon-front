@@ -47,14 +47,21 @@ export const checkDuplicateId = async (loginId) => {
 };
 
 export const logout = async () => {
+  console.log('auth.js logout 함수 시작');
+  console.log('API URL:', `${API_BASE_URL}/api/auth/logout`);
+  
   const response = await apiFetch(`${API_BASE_URL}/api/auth/logout`, {
     method: 'POST',
   });
 
+  console.log('logout API 응답:', response);
+
   if (!response.ok) {
+    console.error('logout API 실패:', response.status, response.statusText);
     throw new Error('Logout failed');
   }
 
+  console.log('logout API 성공');
   return response.json();
 };
 
