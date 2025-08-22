@@ -139,7 +139,7 @@ function AdminPage() {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    // navigate('/') 제거 - AuthContext의 logout 함수에서 페이지 이동을 처리함
   };
 
   return (
