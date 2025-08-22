@@ -100,6 +100,16 @@ const Header = ({ type = 'main', title, onBack }) => {
     );
   }
 
+  if (type === 'admin') {
+    return (
+      <HeaderContainer>
+        <HeaderContent>
+          <PageTitle>{title}</PageTitle>
+        </HeaderContent>
+      </HeaderContainer>
+    );
+  }
+
   return (
     <HeaderContainer>
       <HeaderContent>

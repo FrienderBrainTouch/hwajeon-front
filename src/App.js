@@ -15,8 +15,14 @@ import UploadPage from './pages/MyPage/Upload';
 import UploadFilePage from './pages/MyPage/UploadFile';
 import UsersPage from './pages/Users';
 import FilesPage from './pages/Files';
+import AdminPage from './pages/Admin';
+import AdminLoginPage from './pages/Admin/Login';
+import AdminUploadFilePage from './pages/Admin/UploadFile';
+import AdminUsersPage from './pages/Admin/Users';
+import AdminFilesPage from './pages/Admin/Files';
 import PrivateRoute from './components/common/PrivateRoute';
 import TeacherRoute from './components/common/TeacherRoute';
+import AdminRoute from './components/common/AdminRoute';
 
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
@@ -96,6 +102,13 @@ const AppContent = () => {
             <Route path="/mypage/upload-file" element={<PrivateRoute><UploadFilePage /></PrivateRoute>} />
             <Route path="/users" element={<TeacherRoute><UsersPage /></TeacherRoute>} />
             <Route path="/files" element={<TeacherRoute><FilesPage /></TeacherRoute>} />
+            
+            {/* Admin 라우트들 */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+            <Route path="/admin/upload-file" element={<AdminRoute><AdminUploadFilePage /></AdminRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+            <Route path="/admin/files" element={<AdminRoute><AdminFilesPage /></AdminRoute>} />
           </Routes>
         </PageContainer>
       )}
