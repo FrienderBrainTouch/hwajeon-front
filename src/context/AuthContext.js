@@ -133,26 +133,8 @@ export const AuthProvider = ({ children }) => {
 
       console.log('=== 브라우저 히스토리 정리 시작 ===');
       
-      // 브라우저 히스토리 완전 정리 (순차적으로 처리)
+      // 간단한 페이지 이동 (히스토리 교체 제거)
       setTimeout(() => {
-        if (window.history && window.history.pushState) {
-          // 현재 히스토리 길이 확인
-          console.log('현재 히스토리 길이:', window.history.length);
-          
-          // 모든 히스토리를 정리하고 홈으로 교체
-          window.history.replaceState(null, '', '/');
-          
-          // 뒤로가기/앞으로가기 버튼 비활성화
-          window.onpopstate = function () {
-            window.history.pushState(null, '', '/');
-          };
-          
-          // 앞으로가기 방지
-          window.onbeforeunload = function () {
-            return null;
-          };
-        }
-
         console.log('=== 페이지 이동 준비 ===');
         // 현재 경로에 따라 적절한 로그인 페이지로 이동
         const currentPath = window.location.pathname;
@@ -162,6 +144,8 @@ export const AuthProvider = ({ children }) => {
         const loginPath = isAdminPage ? '/admin/login' : '/login';
         console.log('이동할 로그인 경로:', loginPath);
         console.log('=== 페이지 이동 실행 ===');
+        
+        // 바로 로그인 페이지로 이동
         window.location.href = loginPath;
       }, 100); // 100ms 지연으로 순차 처리
     }
