@@ -4,6 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Header from '../../components/common/Header';
 
+// API URL 설정
+const getApiBaseUrl = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:8080';
+  }
+  return process.env.REACT_APP_API_BASE_URL || 'https://api.hwajeon.store';
+};
+
 const MainContainer = styled.div`
   width: 100%;
   min-width: var(--min-viewport-width);
@@ -123,7 +131,7 @@ const LogoutButton = styled.button`
 
 function AdminPage() {
   const navigate = useNavigate();
-  const { userName, logout } = useAuth();
+  const { userName } = useAuth();
 
   const handleUploadClick = () => {
     navigate('/admin/upload-file');
@@ -138,8 +146,35 @@ function AdminPage() {
   };
 
   const handleLogout = () => {
-    logout();
-    // navigate('/') 제거 - AuthContext의 logout 함수에서 페이지 이동을 처리함
+    console.log('Admin 페이지에서 로그아웃 버튼 클릭됨');
+    console.log('현재 경로:', window.location.pathname);
+    
+    // Admin 전용 로그아웃 처리
+    const adminLogout = async () => {
+      try {
+        // 백엔드 로그아웃 API 호출
+        const response = await fetch(`${getApiBaseUrl()}/api/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+        console.log('Admin 로그아웃 API 응답:', response.status);
+      } catch (error) {
+        console.error('Admin 로그아웃 API 실패:', error);
+      } finally {
+        // 로컬 상태 정리
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        console.log('Admin 로그아웃 완료 - /admin/login으로 이동');
+        // Admin 로그인 페이지로 직접 이동
+        window.location.href = '/admin/login';
+      }
+    };
+    
+    adminLogout();
   };
 
   return (

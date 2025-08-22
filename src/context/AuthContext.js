@@ -56,21 +56,40 @@ export const AuthProvider = ({ children }) => {
     }
 
     // 로그인 페이지에 있을 때는 모달을 표시하지 않고 바로 로그아웃
-    const isLoginPage = window.location.pathname === '/login';
+    const isLoginPage = window.location.pathname === '/login' || window.location.pathname === '/admin/login';
     
     console.log('토큰 만료로 인한 자동 로그아웃을 실행합니다.');
     
     if (!isLoginPage) {
       setShowTokenExpiredModal(true);
       setIsTokenExpiredHandling(true);
-      
-      // 3초 후 자동으로 로그아웃 실행
-      setTimeout(() => {
-        logout();
-      }, 3000);
+      // 3초 타이머 제거 - 모달에서 바로 처리
     } else {
       // 로그인 페이지에 있을 때는 바로 로그아웃
-      logout();
+      // logout 함수를 직접 호출하지 않고 로그아웃 로직을 여기에 작성
+      const logoutImmediately = async () => {
+        try {
+          await logoutApi();
+        } catch (error) {
+          console.error('Logout API failed:', error);
+        } finally {
+          localStorage.clear();
+          sessionStorage.clear();
+          setToken(null);
+          setIsAuthenticated(false);
+          setUserRole(null);
+          setUserName(null);
+          setIsLoading(false);
+          setShowTokenExpiredModal(false);
+          setIsTokenExpiredHandling(false);
+          
+          const currentPath = window.location.pathname;
+          const isAdminPage = currentPath.startsWith('/admin');
+          const loginPath = isAdminPage ? '/admin/login' : '/login';
+          window.location.href = loginPath;
+        }
+      };
+      logoutImmediately();
     }
   }, [isTokenExpiredHandling]);
 
@@ -86,7 +105,11 @@ export const AuthProvider = ({ children }) => {
 
   // 토큰 제거 및 인증 상태 초기화
   const logout = async () => {
-    console.log('AuthContext logout 함수 시작');
+    console.log('=== AuthContext logout 함수 시작 ===');
+    console.log('현재 경로:', window.location.pathname);
+    console.log('현재 인증 상태:', isAuthenticated);
+    console.log('현재 토큰:', token);
+    
     try {
       console.log('백엔드 로그아웃 API 호출 시작');
       await logoutApi(); // 백엔드 로그아웃 API 호출
@@ -94,9 +117,10 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout API failed:', error);
     } finally {
-      console.log('로컬 상태 정리 시작');
-      // 로컬 스토리지 초기화
+      console.log('=== 로컬 상태 정리 시작 ===');
+      // 로컬 스토리지 및 세션 스토리지 초기화
       localStorage.clear(); // 모든 인증 관련 데이터 삭제
+      sessionStorage.clear(); // 세션 데이터도 삭제
       
       // 상태 초기화
       setToken(null);
@@ -107,18 +131,39 @@ export const AuthProvider = ({ children }) => {
       setShowTokenExpiredModal(false);
       setIsTokenExpiredHandling(false);
 
-      console.log('브라우저 캐시 초기화 및 페이지 이동 준비');
-      // 브라우저 캐시 초기화 및 뒤로가기 방지
-      if (window.history && window.history.pushState) {
-        window.history.pushState(null, '', window.location.href);
-        window.onpopstate = function () {
-          window.history.go(1);
-        };
-      }
+      console.log('=== 브라우저 히스토리 정리 시작 ===');
+      
+      // 브라우저 히스토리 완전 정리 (순차적으로 처리)
+      setTimeout(() => {
+        if (window.history && window.history.pushState) {
+          // 현재 히스토리 길이 확인
+          console.log('현재 히스토리 길이:', window.history.length);
+          
+          // 모든 히스토리를 정리하고 홈으로 교체
+          window.history.replaceState(null, '', '/');
+          
+          // 뒤로가기/앞으로가기 버튼 비활성화
+          window.onpopstate = function () {
+            window.history.pushState(null, '', '/');
+          };
+          
+          // 앞으로가기 방지
+          window.onbeforeunload = function () {
+            return null;
+          };
+        }
 
-      console.log('로그인 페이지로 이동');
-      // 로그인 페이지로 강제 이동
-      window.location.replace('/login');
+        console.log('=== 페이지 이동 준비 ===');
+        // 현재 경로에 따라 적절한 로그인 페이지로 이동
+        const currentPath = window.location.pathname;
+        console.log('현재 경로:', currentPath);
+        const isAdminPage = currentPath.startsWith('/admin');
+        console.log('관리자 페이지 여부:', isAdminPage);
+        const loginPath = isAdminPage ? '/admin/login' : '/login';
+        console.log('이동할 로그인 경로:', loginPath);
+        console.log('=== 페이지 이동 실행 ===');
+        window.location.href = loginPath;
+      }, 100); // 100ms 지연으로 순차 처리
     }
   };
 
@@ -154,7 +199,12 @@ export const AuthProvider = ({ children }) => {
       {children}
       <TokenExpiredModal 
         isVisible={showTokenExpiredModal}
-        onClose={() => setShowTokenExpiredModal(false)}
+        onClose={() => {
+          setShowTokenExpiredModal(false);
+          setIsTokenExpiredHandling(false);
+          // 모달이 닫힐 때 로그아웃 처리
+          logout();
+        }}
       />
     </AuthContext.Provider>
   );

@@ -1,10 +1,12 @@
 import React, { createContext, useState, useContext, useRef, useEffect, useCallback } from 'react';
 import { getMusicPlayUrl, addToPlayHistory, getPlayHistory } from '../apis/music';
 import { assignRandomImagesToMusicList } from '../utils/imageUtils';
+import { useAuth } from './AuthContext';
 
 const MusicContext = createContext();
 
 export const MusicProvider = ({ children }) => {
+  const { isAuthenticated } = useAuth();
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -15,6 +17,13 @@ export const MusicProvider = ({ children }) => {
 
   // 백엔드 재생 이력을 가져와서 재생목록으로 설정
   const loadPlaylistFromBackend = useCallback(async () => {
+    if (!isAuthenticated) {
+      console.warn('인증되지 않은 사용자는 재생 이력을 불러올 수 없습니다.');
+      setPlaylist([]);
+      setCurrentTrackIndex(-1);
+      return;
+    }
+
     try {
       setIsPlaylistLoading(true);
       const response = await getPlayHistory(0, 50); // 최근 50개 재생 이력
@@ -60,12 +69,18 @@ export const MusicProvider = ({ children }) => {
     } finally {
       setIsPlaylistLoading(false);
     }
-  }, [currentTrack]);
+  }, [currentTrack, isAuthenticated]);
 
-  // 컴포넌트 마운트 시 백엔드 재생 이력 로드
+  // 컴포넌트 마운트 시 백엔드 재생 이력 로드 (인증된 경우에만)
   useEffect(() => {
-    loadPlaylistFromBackend();
-  }, [loadPlaylistFromBackend]);
+    if (isAuthenticated) {
+      loadPlaylistFromBackend();
+    } else {
+      // 인증되지 않은 경우 재생목록 초기화
+      setPlaylist([]);
+      setCurrentTrackIndex(-1);
+    }
+  }, [loadPlaylistFromBackend, isAuthenticated]);
 
   // 재생목록에 곡 추가 (기존 로직 유지)
   const addToPlaylist = (track) => {
@@ -136,6 +151,11 @@ export const MusicProvider = ({ children }) => {
   };
 
   const playTrack = async (track) => {
+    if (!isAuthenticated) {
+      alert('인증되지 않은 사용자는 음악을 재생할 수 없습니다.');
+      return;
+    }
+
     try {
       console.log('=== MusicContext playTrack 시작 ===');
       console.log('받은 track 정보:', track);

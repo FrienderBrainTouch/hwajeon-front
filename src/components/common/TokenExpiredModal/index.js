@@ -2,13 +2,6 @@ import React from 'react';
 import './styles.css';
 
 const TokenExpiredModal = ({ isVisible, onClose }) => {
-  const handleLoginRedirect = () => {
-    // 모달 닫기
-    onClose();
-    // 로그인 페이지로 이동
-    window.location.href = '/login';
-  };
-
   if (!isVisible) return null;
 
   return (
@@ -19,14 +12,14 @@ const TokenExpiredModal = ({ isVisible, onClose }) => {
         </div>
         <div className="modal-body">
           <p>보안을 위해 자동으로 로그아웃되었습니다.</p>
-          <p>다시 로그인해 주세요.</p>
+          <p>확인 버튼을 눌러 로그인 페이지로 이동하세요.</p>
         </div>
         <div className="modal-footer">
           <button 
             className="login-button"
-            onClick={handleLoginRedirect}
+            onClick={onClose}
           >
-            로그인 페이지로 이동
+            확인
           </button>
         </div>
       </div>
