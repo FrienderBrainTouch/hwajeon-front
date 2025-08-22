@@ -139,7 +139,7 @@ function AdminPage() {
 
   const handleLogout = () => {
     logout();
-    navigate('/admin/login');
+    navigate('/');
   };
 
   return (
