@@ -252,7 +252,7 @@ const EmptyStateText = styled.p`
 
 function MyPage() {
   const navigate = useNavigate();
-  const { logout, userName } = useAuth();
+  const { logout, userName, userRole } = useAuth();
   const [myMusic, setMyMusic] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -332,9 +332,11 @@ function MyPage() {
             <ProfileIcon />
             <UserInfoWrapper>
               <UserName>{userName || "사용자"}</UserName>
-              <UploadButton onClick={handleUploadClick}>
-                파일 업로드
-              </UploadButton>
+              {userRole === 'TEACHER' && (
+                <UploadButton onClick={handleUploadClick}>
+                  파일 업로드
+                </UploadButton>
+              )}
             </UserInfoWrapper>
           </UserInfoSection>
           
