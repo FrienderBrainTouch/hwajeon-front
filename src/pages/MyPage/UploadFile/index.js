@@ -183,8 +183,25 @@ const CreatorSection = styled.div`
   margin-top: var(--spacing-large);
 `;
 
-const Select = styled.select`
+const Input = styled.input`
   width: 100%;
+  height: 48px;
+  border: 1px solid #E9E9E9;
+  border-radius: 8px;
+  padding: 0 var(--spacing-medium);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: var(--font-size-normal);
+  color: var(--color-text-primary);
+  background-color: #fff;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+`;
+
+const Select = styled.select`
+  flex: 1;
   height: 48px;
   border: 1px solid #E9E9E9;
   border-radius: 8px;
@@ -197,6 +214,33 @@ const Select = styled.select`
   
   &:focus {
     outline: none;
+    border-color: var(--color-accent);
+  }
+`;
+
+const CreatorRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-small);
+`;
+
+const SearchButton = styled.button`
+  width: auto;
+  height: 48px;
+  padding: 0 var(--spacing-medium);
+  background-color: #f5f5f5;
+  border: 1px solid #E9E9E9;
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: var(--font-size-normal);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #e0e0e0;
     border-color: var(--color-accent);
   }
 `;
@@ -225,6 +269,109 @@ const UploadButton = styled.button`
   }
 `;
 
+// 모달 스타일
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background-color: #fff;
+  border-radius: 12px;
+  padding: var(--spacing-large);
+  width: 90%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+`;
+
+const ModalHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-medium);
+`;
+
+const ModalTitle = styled.h3`
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0;
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+  
+  &:hover {
+    color: #333;
+  }
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  height: 48px;
+  border: 1px solid #E9E9E9;
+  border-radius: 8px;
+  padding: 0 var(--spacing-medium);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: var(--font-size-normal);
+  color: var(--color-text-primary);
+  background-color: #fff;
+  margin-bottom: var(--spacing-medium);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+`;
+
+const UserList = styled.div`
+  max-height: 300px;
+  overflow-y: auto;
+`;
+
+const UserItem = styled.div`
+  padding: var(--spacing-medium);
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: #f5f5f5;
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const UserName = styled.div`
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: var(--font-size-normal);
+  font-weight: 500;
+  color: var(--color-text-primary);
+`;
+
+const UserId = styled.div`
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+`;
+
 function UploadFilePage() {
   const navigate = useNavigate();
   const { userRole } = useAuth();
@@ -237,6 +384,10 @@ function UploadFilePage() {
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [usersError, setUsersError] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState('');
+  const [local, setLocal] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredUsers, setFilteredUsers] = useState([]);
 
   // TEACHER 권한일 때 사용자 목록 가져오기
   useEffect(() => {
@@ -348,11 +499,15 @@ function UploadFilePage() {
       // TEACHER 권한일 때는 selectedUserId, 일반 유저일 때는 null 전달
       // TEACHER: api/users/{userId} 호출, 일반 유저: api/musics 호출 (토큰에서 사용자 정보 추출)
       const userIdToSend = userRole === 'TEACHER' ? selectedUserId : null;
-      await uploadMusic(files, userIdToSend);
+      await uploadMusic(files, userIdToSend, local);
       
       // 업로드 완료 후 처리
       alert('파일 업로드가 완료되었습니다.');
-      navigate('/mypage');
+      // 업로드 완료 후 필드 초기화
+      setFiles([]);
+      setSelectedCreator('');
+      setSelectedUserId('');
+      setLocal('');
     } catch (error) {
       console.error('Upload failed:', error);
       alert('파일 업로드에 실패했습니다. 다시 시도해주세요.');
@@ -370,6 +525,38 @@ function UploadFilePage() {
     } else {
       setSelectedUserId('');
     }
+  };
+
+  const openUserSearchModal = () => {
+    setIsModalOpen(true);
+    setSearchTerm('');
+    setFilteredUsers(users.slice(0, 10));
+  };
+
+  const closeUserSearchModal = () => {
+    setIsModalOpen(false);
+    setSearchTerm('');
+  };
+
+  const handleSearchInput = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    
+    if (term.trim() === '') {
+      setFilteredUsers(users.slice(0, 10));
+    } else {
+      const filtered = users.filter(user => 
+        user.userName.toLowerCase().includes(term.toLowerCase()) ||
+        user.loginId.toLowerCase().includes(term.toLowerCase())
+      );
+      setFilteredUsers(filtered.slice(0, 10));
+    }
+  };
+
+  const selectUserFromModal = (user) => {
+    setSelectedCreator(user.userId.toString());
+    setSelectedUserId(user.userId);
+    closeUserSearchModal();
   };
 
   return (
@@ -445,29 +632,82 @@ function UploadFilePage() {
                   </button>
                 </div>
               ) : (
-                <Select 
-                  value={selectedCreator} 
-                  onChange={handleCreatorChange}
-                >
-                  <option value="">선택해주세요</option>
-                  {users.map(user => (
-                    <option key={user.userId} value={user.userId}>
-                      {user.userName}({user.loginId})
-                    </option>
-                  ))}
-                </Select>
+                <CreatorRow>
+                  <Select 
+                    value={selectedCreator} 
+                    onChange={handleCreatorChange}
+                  >
+                    <option value="">선택해주세요</option>
+                    {users.slice(0, 10).map(user => (
+                      <option key={user.userId} value={user.userId}>
+                        {user.userName}({user.loginId})
+                      </option>
+                    ))}
+                  </Select>
+                  <SearchButton onClick={openUserSearchModal}>
+                    🔍 검색
+                  </SearchButton>
+                </CreatorRow>
               )}
+              
+              <div style={{ marginTop: 'var(--spacing-medium)' }}>
+                <SectionTitle>지역</SectionTitle>
+                <Input
+                  type="text"
+                  placeholder="지역을 입력해주세요"
+                  value={local}
+                  onChange={(e) => setLocal(e.target.value)}
+                />
+              </div>
             </CreatorSection>
           )}
 
           <UploadButton 
             onClick={handleUpload}
-            disabled={files.length === 0 || (userRole === 'TEACHER' && !selectedCreator)}
+            disabled={files.length === 0 || (userRole === 'TEACHER' && (!selectedCreator || !local.trim()))}
           >
             업로드
           </UploadButton>
         </Content>
       </MainContainer>
+
+      {/* 사용자 검색 모달 */}
+      {isModalOpen && (
+        <ModalOverlay onClick={closeUserSearchModal}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <ModalHeader>
+              <ModalTitle>사용자 검색</ModalTitle>
+              <CloseButton onClick={closeUserSearchModal}>×</CloseButton>
+            </ModalHeader>
+            
+            <SearchInput
+              type="text"
+              placeholder="사용자명 또는 로그인 ID로 검색"
+              value={searchTerm}
+              onChange={handleSearchInput}
+            />
+            
+            <UserList>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map(user => (
+                  <UserItem key={user.userId} onClick={() => selectUserFromModal(user)}>
+                    <UserName>{user.userName}</UserName>
+                    <UserId>{user.loginId}</UserId>
+                  </UserItem>
+                ))
+              ) : (
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: 'var(--spacing-medium)',
+                  color: 'var(--color-text-secondary)'
+                }}>
+                  검색 결과가 없습니다.
+                </div>
+              )}
+            </UserList>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </>
   );
 }

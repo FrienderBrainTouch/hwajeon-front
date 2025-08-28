@@ -36,7 +36,7 @@ export const toggleLike = async (musicId) => {
 };
 
 // 음악 파일 업로드 (TEACHER 권한용)
-export const uploadMusic = async (files, userId = null) => {
+export const uploadMusic = async (files, userId = null, cityName = null) => {
   const formData = new FormData();
   
   // 파일들을 FormData에 추가
@@ -56,9 +56,15 @@ export const uploadMusic = async (files, userId = null) => {
 
   // TEACHER 권한일 때는 api/musics/{userId} 엔드포인트 사용
   // 일반 유저일 때는 api/musics 엔드포인트 사용 (토큰에서 사용자 정보 추출)
-  const uploadUrl = userId 
+  let uploadUrl = userId 
     ? `${API_BASE_URL}/api/musics/${userId}`
     : `${API_BASE_URL}/api/musics`;
+
+  // TEACHER 권한일 때 cityName을 query parameter로 추가 (항상 전송)
+  if (userId) {
+    const cityNameValue = cityName || ''; // cityName이 없으면 빈 문자열
+    uploadUrl += `?cityName=${encodeURIComponent(cityNameValue)}`;
+  }
 
   const response = await fetch(uploadUrl, {
     method: 'POST',
