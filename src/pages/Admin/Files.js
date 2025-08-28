@@ -288,10 +288,28 @@ function AdminFilesPage() {
 
   // 검색 필터링
   useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredMusicFiles(musicFiles);
+      return;
+    }
+
     let filtered = musicFiles.filter(music => {
-      const matchesSearch = music.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           music.owner.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesSearch;
+      const searchLower = searchTerm.toLowerCase().trim();
+      const titleLower = music.title.toLowerCase();
+      const ownerLower = music.owner.toLowerCase();
+      
+      // 제목에서 검색
+      const titleMatch = titleLower.includes(searchLower);
+      
+      // 작곡가에서 검색
+      const ownerMatch = ownerLower.includes(searchLower);
+      
+      // 공백으로 분리된 단어들로도 검색 (예: "바삭한 파전" -> "바삭", "파전" 각각 검색)
+      const searchWords = searchLower.split(/\s+/).filter(word => word.length > 0);
+      const titleWordMatch = searchWords.some(word => titleLower.includes(word));
+      const ownerWordMatch = searchWords.some(word => ownerLower.includes(word));
+      
+      return titleMatch || ownerMatch || titleWordMatch || ownerWordMatch;
     });
     
     setFilteredMusicFiles(filtered);
