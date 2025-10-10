@@ -161,9 +161,9 @@ export const MusicProvider = ({ children }) => {
       console.log('받은 track 정보:', track);
       setIsLoading(true);
       
-      if (currentTrack?.id === track.id) {
+      if (currentTrack?.id === track.id && audioRef.current.src) {
         console.log('같은 곡 재생/일시정지 토글');
-        // 같은 곡이면 재생/일시정지 토글
+        // 같은 곡이고 src가 설정되어 있으면 재생/일시정지 토글
         if (isPlaying) {
           audioRef.current.pause();
           setIsPlaying(false);
