@@ -1,20 +1,27 @@
 // 환경별 API 주소 설정
 const getApiBaseUrl = () => {
-  // 개발 환경 (npm start) - 로컬 API 사용
+  // 개발 환경에서도 환경 변수 사용
   if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:8080';
+    return process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
   }
-  
+
   // 배포 환경 (npm run build) - 환경 변수 또는 기본값 사용
   if (process.env.NODE_ENV === 'production') {
     return process.env.REACT_APP_API_BASE_URL || 'https://api.hwajeon.store';
   }
-  
+
   // 기본값
   return 'http://localhost:8080';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
+
+// 프로덕션 환경에서 콘솔 로그 비활성화
+if (process.env.NODE_ENV === 'production') {
+  console.log = () => {};
+  console.warn = () => {};
+  console.error = () => {};
+}
 
 // 환경별 로그
 console.log(`🌍 ${process.env.NODE_ENV === 'production' ? '배포' : '개발'} 환경`);
@@ -61,20 +68,20 @@ export const apiFetch = async (url, options = {}) => {
   console.log('apiFetch 시작:', url);
   console.log('apiFetch 옵션:', options);
   console.log('현재 토큰:', localStorage.getItem('accessToken'));
-  
+
   const response = await fetch(url, {
     ...options,
     headers: getHeaders(),
   });
-  
+
   console.log('apiFetch 응답:', response.status, response.statusText);
-  
+
   const { isTokenExpired } = await handleApiResponse(response);
-  
+
   if (isTokenExpired) {
     console.log('토큰 만료 감지됨');
     throw new Error('TOKEN_EXPIRED');
   }
-  
+
   return response;
 };
