@@ -1,3 +1,6 @@
+// 토큰 재발급 함수 import
+import { refreshAccessToken } from './auth';
+
 // 환경별 API 주소 설정
 const getApiBaseUrl = () => {
   // 개발 환경에서도 환경 변수 사용
@@ -45,20 +48,33 @@ export const getHeaders = () => {
 };
 
 // API 응답 처리 및 토큰 만료 감지
-export const handleApiResponse = async (response) => {
+export const handleApiResponse = async (response, expiredToken) => {
   if (response.status === 401) {
-    try {
-      const errorData = await response.json();
-      if (errorData.error === 'token_expired' || errorData.message === 'token_expired') {
-        console.log('토큰이 만료되었습니다. 자동 로그아웃을 실행합니다.');
-        if (onTokenExpired) {
-          onTokenExpired();
+    console.log('401 에러 감지. 토큰 재발급을 시도합니다.');
+
+    // 자동 로그인이 활성화되어 있는 경우 토큰 재발급 시도
+    const autoLoginEnabled = localStorage.getItem('autoLogin') === 'true';
+    if (autoLoginEnabled) {
+      try {
+        console.log('자동 로그인 활성화됨. refreshAccessToken 호출...');
+        const newTokenData = await refreshAccessToken(expiredToken); // 만료된 토큰 전달
+        if (newTokenData.accessToken) {
+          console.log('토큰 재발급 성공');
+          localStorage.setItem('accessToken', newTokenData.accessToken);
+          return { isTokenExpired: false, response, newToken: newTokenData.accessToken };
         }
-        return { isTokenExpired: true, response };
+      } catch (reissueError) {
+        console.log('토큰 재발급 실패:', reissueError);
       }
-    } catch (error) {
-      console.error('에러 응답 파싱 실패:', error);
+    } else {
+      console.log('자동 로그인 비활성화됨');
     }
+
+    console.log('토큰 재발급 실패 또는 자동 로그인 비활성화. 자동 로그아웃을 실행합니다.');
+    if (onTokenExpired) {
+      onTokenExpired();
+    }
+    return { isTokenExpired: true, response };
   }
   return { isTokenExpired: false, response };
 };
@@ -67,20 +83,36 @@ export const handleApiResponse = async (response) => {
 export const apiFetch = async (url, options = {}) => {
   console.log('apiFetch 시작:', url);
   console.log('apiFetch 옵션:', options);
-  console.log('현재 토큰:', localStorage.getItem('accessToken'));
+  const currentToken = localStorage.getItem('accessToken');
+  console.log('현재 토큰:', currentToken);
 
   const response = await fetch(url, {
     ...options,
     headers: getHeaders(),
+    credentials: 'include', // HttpOnly 쿠키 포함
   });
 
   console.log('apiFetch 응답:', response.status, response.statusText);
 
-  const { isTokenExpired } = await handleApiResponse(response);
+  const { isTokenExpired, newToken } = await handleApiResponse(response, currentToken);
 
   if (isTokenExpired) {
     console.log('토큰 만료 감지됨');
     throw new Error('TOKEN_EXPIRED');
+  }
+
+  // 토큰이 재발급된 경우 원래 요청을 새 토큰으로 재시도
+  if (newToken && response.status === 401) {
+    console.log('새 토큰으로 원래 요청 재시도');
+    const retryResponse = await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${newToken}`, // 새로 발급받은 토큰 사용
+      },
+      credentials: 'include', // HttpOnly 쿠키 포함
+    });
+    return retryResponse;
   }
 
   return response;

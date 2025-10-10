@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { logout as logoutApi } from '../apis/auth';
+import { logout as logoutApi, refreshAccessToken } from '../apis/auth';
 import { setTokenExpiredCallback } from '../apis/config';
 import TokenExpiredModal from '../components/common/TokenExpiredModal';
 
@@ -9,9 +9,14 @@ const parseJwt = (token) => {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join('')
+    );
     return JSON.parse(jsonPayload);
   } catch (error) {
     return null;
@@ -56,10 +61,11 @@ export const AuthProvider = ({ children }) => {
     }
 
     // 로그인 페이지에 있을 때는 모달을 표시하지 않고 바로 로그아웃
-    const isLoginPage = window.location.pathname === '/login' || window.location.pathname === '/admin/login';
-    
+    const isLoginPage =
+      window.location.pathname === '/login' || window.location.pathname === '/admin/login';
+
     console.log('토큰 만료로 인한 자동 로그아웃을 실행합니다.');
-    
+
     if (!isLoginPage) {
       setShowTokenExpiredModal(true);
       setIsTokenExpiredHandling(true);
@@ -82,7 +88,7 @@ export const AuthProvider = ({ children }) => {
           setIsLoading(false);
           setShowTokenExpiredModal(false);
           setIsTokenExpiredHandling(false);
-          
+
           const currentPath = window.location.pathname;
           const isAdminPage = currentPath.startsWith('/admin');
           const loginPath = isAdminPage ? '/admin/login' : '/login';
@@ -94,14 +100,17 @@ export const AuthProvider = ({ children }) => {
   }, [isTokenExpiredHandling]);
 
   // 토큰 저장 및 인증 상태 업데이트
-  const login = (accessToken) => {
-    localStorage.setItem('accessToken', accessToken);
-    setToken(accessToken);
-    setIsAuthenticated(true);
-    setIsLoading(true);
-    setIsTokenExpiredHandling(false); // 로그인 시 토큰 만료 처리 상태 초기화
-    parseTokenAndSetUserInfo(accessToken);
-  };
+  const login = useCallback(
+    (accessToken) => {
+      localStorage.setItem('accessToken', accessToken);
+      setToken(accessToken);
+      setIsAuthenticated(true);
+      setIsLoading(true);
+      setIsTokenExpiredHandling(false); // 로그인 시 토큰 만료 처리 상태 초기화
+      parseTokenAndSetUserInfo(accessToken);
+    },
+    [parseTokenAndSetUserInfo]
+  );
 
   // 토큰 제거 및 인증 상태 초기화
   const logout = async () => {
@@ -109,7 +118,7 @@ export const AuthProvider = ({ children }) => {
     console.log('현재 경로:', window.location.pathname);
     console.log('현재 인증 상태:', isAuthenticated);
     console.log('현재 토큰:', token);
-    
+
     try {
       console.log('백엔드 로그아웃 API 호출 시작');
       await logoutApi(); // 백엔드 로그아웃 API 호출
@@ -121,7 +130,7 @@ export const AuthProvider = ({ children }) => {
       // 로컬 스토리지 및 세션 스토리지 초기화
       localStorage.clear(); // 모든 인증 관련 데이터 삭제
       sessionStorage.clear(); // 세션 데이터도 삭제
-      
+
       // 상태 초기화
       setToken(null);
       setIsAuthenticated(false);
@@ -132,7 +141,7 @@ export const AuthProvider = ({ children }) => {
       setIsTokenExpiredHandling(false);
 
       console.log('=== 브라우저 히스토리 정리 시작 ===');
-      
+
       // 간단한 페이지 이동 (히스토리 교체 제거)
       setTimeout(() => {
         console.log('=== 페이지 이동 준비 ===');
@@ -144,24 +153,39 @@ export const AuthProvider = ({ children }) => {
         const loginPath = isAdminPage ? '/admin/login' : '/login';
         console.log('이동할 로그인 경로:', loginPath);
         console.log('=== 페이지 이동 실행 ===');
-        
+
         // 바로 로그인 페이지로 이동
         window.location.href = loginPath;
       }, 100); // 100ms 지연으로 순차 처리
     }
   };
 
-  // 토큰이 있는지 확인
+  // 자동 로그인 체크
   useEffect(() => {
-    const storedToken = localStorage.getItem('accessToken');
-    if (storedToken) {
-      setToken(storedToken);
-      setIsAuthenticated(true);
-      parseTokenAndSetUserInfo(storedToken);
-    } else {
-      setIsLoading(false);
-    }
-  }, [parseTokenAndSetUserInfo]);
+    const checkAutoLogin = async () => {
+      const autoLoginEnabled = localStorage.getItem('autoLogin') === 'true';
+
+      if (autoLoginEnabled) {
+        try {
+          console.log('자동 로그인 시도 중...');
+          const newTokenData = await refreshAccessToken();
+          if (newTokenData.accessToken) {
+            console.log('자동 로그인 성공');
+            login(newTokenData.accessToken);
+          }
+        } catch (error) {
+          console.log('자동 로그인 실패:', error);
+          // 자동 로그인 실패 시 자동 로그인 설정 해제
+          localStorage.removeItem('autoLogin');
+          setIsLoading(false);
+        }
+      } else {
+        setIsLoading(false);
+      }
+    };
+
+    checkAutoLogin();
+  }, [login]);
 
   // 토큰 만료 콜백 설정
   useEffect(() => {
@@ -181,7 +205,7 @@ export const AuthProvider = ({ children }) => {
       }}
     >
       {children}
-      <TokenExpiredModal 
+      <TokenExpiredModal
         isVisible={showTokenExpiredModal}
         onClose={() => {
           setShowTokenExpiredModal(false);

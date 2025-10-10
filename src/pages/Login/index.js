@@ -11,7 +11,7 @@ const MainContainer = styled.div`
   max-width: var(--max-viewport-width);
   min-height: 100vh;
   margin: 0 auto;
-  padding-top: 60px;  // 헤더 높이만큼
+  padding-top: 60px; // 헤더 높이만큼
   background-color: var(--color-background);
   display: flex;
   flex-direction: column;
@@ -54,16 +54,16 @@ const Input = styled.input`
   padding: 0 16px;
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 20px;
-  color: #1A1A1A;
+  color: #1a1a1a;
   box-sizing: border-box;
-  
+
   &::placeholder {
     color: rgba(0, 0, 0, 0.6);
   }
 
   &:focus {
     outline: none;
-    border-color: #1E88E5;
+    border-color: #1e88e5;
   }
 `;
 
@@ -88,11 +88,9 @@ const SignupLink = styled.div`
   align-items: center;
   justify-content: center;
   gap: var(--spacing-small);
-  margin-top: var(--spacing-medium);  // spacing-large에서 spacing-medium으로 변경
+  margin-top: var(--spacing-medium); // spacing-large에서 spacing-medium으로 변경
   cursor: pointer;
 `;
-
-
 
 const SignupText = styled.span`
   font-family: 'Noto Sans KR', sans-serif;
@@ -131,7 +129,31 @@ const ErrorMessage = styled.div`
   font-size: var(--font-size-normal);
   text-align: center;
   margin-bottom: var(--spacing-medium);
-  display: ${props => props.show ? 'block' : 'none'};
+  display: ${(props) => (props.show ? 'block' : 'none')};
+`;
+
+const AutoLoginContainer = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-top: var(--spacing-small);
+  margin-bottom: var(--spacing-small);
+`;
+
+const Checkbox = styled.input`
+  width: 20px;
+  height: 20px;
+  margin-right: var(--spacing-small);
+  cursor: pointer;
+`;
+
+const AutoLoginLabel = styled.label`
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: var(--font-size-normal);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
 `;
 
 function LoginPage() {
@@ -140,10 +162,11 @@ function LoginPage() {
   const { login } = useAuth();
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
+  const [autoLogin, setAutoLogin] = useState(true); // 기본값 체크됨
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setError('');
   };
 
@@ -151,14 +174,22 @@ function LoginPage() {
     e.preventDefault();
     try {
       const { accessToken } = await loginApi(formData.username, formData.password);
+
+      // 자동 로그인 설정 저장
+      if (autoLogin) {
+        localStorage.setItem('autoLogin', 'true');
+      } else {
+        localStorage.removeItem('autoLogin');
+      }
+
       login(accessToken); // JWT 토큰 저장
-      
+
       // 이전에 접근하려던 페이지가 있으면 그곳으로 이동, 없으면 메인 페이지로 이동
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     } catch (err) {
       console.error('Login error:', err);
-      
+
       // 백엔드 응답 상태에 따른 에러 메시지 설정
       if (err.response) {
         const { status } = err.response;
@@ -187,9 +218,7 @@ function LoginPage() {
       <MainContainer>
         <LoginContainer>
           <Form onSubmit={handleSubmit}>
-            <ErrorMessage show={!!error}>
-              {error}
-            </ErrorMessage>
+            <ErrorMessage show={!!error}>{error}</ErrorMessage>
             <InputGroup>
               <Input
                 type="text"
@@ -208,6 +237,15 @@ function LoginPage() {
                 onChange={handleChange}
               />
             </InputGroup>
+            <AutoLoginContainer>
+              <Checkbox
+                type="checkbox"
+                id="autoLogin"
+                checked={autoLogin}
+                onChange={(e) => setAutoLogin(e.target.checked)}
+              />
+              <AutoLoginLabel htmlFor="autoLogin">자동 로그인</AutoLoginLabel>
+            </AutoLoginContainer>
             <LoginButton type="submit">저장 및 로그인</LoginButton>
           </Form>
           <SignupLink onClick={() => navigate('/signup')}>
@@ -216,7 +254,8 @@ function LoginPage() {
         </LoginContainer>
         <NoticeContainer>
           <Notice>
-            로그인 후 자동으로 로그인 상태가 유지됩니다. 공용 기기 사용 시 [마이페이지]에서 로그아웃해 주세요.
+            로그인 후 자동으로 로그인 상태가 유지됩니다. 공용 기기 사용 시 [마이페이지]에서
+            로그아웃해 주세요.
           </Notice>
         </NoticeContainer>
       </MainContainer>
