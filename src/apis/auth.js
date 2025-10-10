@@ -1,19 +1,36 @@
 import { API_BASE_URL, apiFetch } from './config';
 
 export const login = async (username, password) => {
+  console.log('=== login 함수 시작 ===');
+  console.log('로그인 요청:', { username });
+  console.log('로그인 전 쿠키:', document.cookie);
+
   const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ username, password }),
+    credentials: 'include', // 쿠키 포함
+  });
+
+  console.log('로그인 API 응답 상태:', response.status, response.statusText);
+  console.log('로그인 응답 헤더:');
+  response.headers.forEach((value, key) => {
+    console.log(`  ${key}: ${value}`);
   });
 
   if (!response.ok) {
+    console.error('로그인 API 실패:', response.status, response.statusText);
     throw new Error('Login failed');
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log('로그인 API 성공, 응답:', result);
+  console.log('로그인 후 쿠키:', document.cookie);
+  console.log('=== login 함수 완료 ===');
+
+  return result;
 };
 
 export const signup = async (userData) => {
@@ -49,7 +66,7 @@ export const checkDuplicateId = async (loginId) => {
 export const logout = async () => {
   console.log('auth.js logout 함수 시작');
   console.log('API URL:', `${API_BASE_URL}/api/auth/logout`);
-  
+
   const response = await apiFetch(`${API_BASE_URL}/api/auth/logout`, {
     method: 'POST',
   });
@@ -63,6 +80,33 @@ export const logout = async () => {
 
   console.log('logout API 성공');
   return response.json();
+};
+
+// Access Token 재발급 (Refresh Token은 HttpOnly 쿠키에서 자동으로 전송됨)
+export const refreshAccessToken = async (expiredAccessToken) => {
+  console.log('=== refreshAccessToken 함수 시작 ===');
+  console.log('API URL:', `${API_BASE_URL}/api/auth/reissue`);
+  console.log('만료된 토큰:', expiredAccessToken);
+
+  const response = await fetch(`${API_BASE_URL}/api/auth/reissue`, {
+    method: 'POST',
+    credentials: 'include', // HttpOnly 쿠키의 Refresh Token을 자동으로 포함
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${expiredAccessToken}`, // 만료된 access_token 포함
+    },
+  });
+
+  console.log('reissue API 응답 상태:', response.status, response.statusText);
+
+  if (!response.ok) {
+    console.error('reissue API 실패:', response.status, response.statusText);
+    throw new Error('Token reissue failed');
+  }
+
+  const result = await response.json(); // { accessToken: "새로운 액세스 토큰" }
+  console.log('reissue API 성공, 응답:', result);
+  return result;
 };
 
 export const changePassword = async (oldPassword, newPassword, confirmPassword) => {
