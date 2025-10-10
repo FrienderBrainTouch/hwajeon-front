@@ -83,9 +83,12 @@ export const logout = async () => {
 };
 
 // Access Token 재발급 (Refresh Token은 HttpOnly 쿠키에서 자동으로 전송됨)
-export const refreshAccessToken = async (expiredAccessToken) => {
+export const refreshAccessToken = async () => {
   console.log('=== refreshAccessToken 함수 시작 ===');
   console.log('API URL:', `${API_BASE_URL}/api/auth/reissue`);
+  
+  // localStorage에서 만료된 토큰 가져오기
+  const expiredAccessToken = localStorage.getItem('accessToken');
   console.log('만료된 토큰:', expiredAccessToken);
 
   const response = await fetch(`${API_BASE_URL}/api/auth/reissue`, {
