@@ -100,14 +100,17 @@ export const AuthProvider = ({ children }) => {
   }, [isTokenExpiredHandling]);
 
   // 토큰 저장 및 인증 상태 업데이트
-  const login = (accessToken) => {
-    localStorage.setItem('accessToken', accessToken);
-    setToken(accessToken);
-    setIsAuthenticated(true);
-    setIsLoading(true);
-    setIsTokenExpiredHandling(false); // 로그인 시 토큰 만료 처리 상태 초기화
-    parseTokenAndSetUserInfo(accessToken);
-  };
+  const login = useCallback(
+    (accessToken) => {
+      localStorage.setItem('accessToken', accessToken);
+      setToken(accessToken);
+      setIsAuthenticated(true);
+      setIsLoading(true);
+      setIsTokenExpiredHandling(false); // 로그인 시 토큰 만료 처리 상태 초기화
+      parseTokenAndSetUserInfo(accessToken);
+    },
+    [parseTokenAndSetUserInfo]
+  );
 
   // 토큰 제거 및 인증 상태 초기화
   const logout = async () => {
@@ -182,7 +185,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     checkAutoLogin();
-  }, []);
+  }, [login]);
 
   // 토큰 만료 콜백 설정
   useEffect(() => {
