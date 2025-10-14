@@ -200,29 +200,6 @@ const Input = styled.input`
   }
 `;
 
-const Select = styled.select`
-  flex: 1;
-  height: 48px;
-  border: 1px solid #E9E9E9;
-  border-radius: 8px;
-  padding: 0 var(--spacing-medium);
-  font-family: 'Noto Sans KR', sans-serif;
-  font-size: var(--font-size-normal);
-  color: var(--color-text-primary);
-  background-color: #fff;
-  cursor: pointer;
-  
-  &:focus {
-    outline: none;
-    border-color: var(--color-accent);
-  }
-`;
-
-const CreatorRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-small);
-`;
 
 const SearchButton = styled.button`
   width: auto;
@@ -372,6 +349,76 @@ const UserId = styled.div`
   margin-top: 4px;
 `;
 
+// 페이징 스타일
+const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--spacing-medium);
+  padding-top: var(--spacing-medium);
+  border-top: 1px solid #f0f0f0;
+`;
+
+const PageButton = styled.button`
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: ${props => props.active ? '#1e88e5' : '#fff'};
+  color: ${props => props.active ? '#fff' : '#333'};
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: ${props => props.active ? '#1976d2' : '#f5f5f5'};
+  }
+  
+  &:disabled {
+    background-color: #f5f5f5;
+    color: #ccc;
+    cursor: not-allowed;
+  }
+`;
+
+
+const SelectedUserDisplay = styled.div`
+  padding: var(--spacing-medium);
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: var(--spacing-medium);
+  border: 1px solid #e9ecef;
+`;
+
+const SelectedUserText = styled.div`
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: var(--font-size-normal);
+  color: var(--color-text-primary);
+  font-weight: 500;
+`;
+
+const SelectedUserId = styled.div`
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+`;
+
+const ClearButton = styled.button`
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: auto;
+  
+  &:hover {
+    color: #ff3b30;
+  }
+`;
+
 function UploadFilePage() {
   const navigate = useNavigate();
   const { userRole } = useAuth();
@@ -388,6 +435,9 @@ function UploadFilePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const usersPerPage = 10;
 
   // TEACHER 권한일 때 사용자 목록 가져오기
   useEffect(() => {
@@ -514,49 +564,61 @@ function UploadFilePage() {
     }
   };
 
-  const handleCreatorChange = (e) => {
-    const selectedValue = e.target.value;
-    setSelectedCreator(selectedValue);
-    
-    // 선택된 사용자의 userId 찾기
-    if (selectedValue) {
-      const selectedUser = users.find(user => user.userId.toString() === selectedValue);
-      setSelectedUserId(selectedUser ? selectedUser.userId : '');
-    } else {
-      setSelectedUserId('');
-    }
+
+  // 페이징된 사용자 목록 계산
+  const getPaginatedUsers = () => {
+    const startIndex = (currentPage - 1) * usersPerPage;
+    const endIndex = startIndex + usersPerPage;
+    return filteredUsers.slice(startIndex, endIndex);
   };
+
+  // 총 페이지 수 계산
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
   const openUserSearchModal = () => {
     setIsModalOpen(true);
     setSearchTerm('');
-    setFilteredUsers(users.slice(0, 10));
+    setCurrentPage(1);
+    setFilteredUsers(users);
   };
 
   const closeUserSearchModal = () => {
     setIsModalOpen(false);
     setSearchTerm('');
+    setCurrentPage(1);
   };
 
   const handleSearchInput = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
+    setCurrentPage(1); // 검색 시 첫 페이지로 이동
     
     if (term.trim() === '') {
-      setFilteredUsers(users.slice(0, 10));
+      setFilteredUsers(users);
     } else {
       const filtered = users.filter(user => 
         user.userName.toLowerCase().includes(term.toLowerCase()) ||
         user.loginId.toLowerCase().includes(term.toLowerCase())
       );
-      setFilteredUsers(filtered.slice(0, 10));
+      setFilteredUsers(filtered);
     }
   };
 
   const selectUserFromModal = (user) => {
     setSelectedCreator(user.userId.toString());
     setSelectedUserId(user.userId);
+    setSelectedUser(user);
     closeUserSearchModal();
+  };
+
+  const clearSelectedUser = () => {
+    setSelectedCreator('');
+    setSelectedUserId('');
+    setSelectedUser(null);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -632,22 +694,36 @@ function UploadFilePage() {
                   </button>
                 </div>
               ) : (
-                <CreatorRow>
-                  <Select 
-                    value={selectedCreator} 
-                    onChange={handleCreatorChange}
-                  >
-                    <option value="">선택해주세요</option>
-                    {users.slice(0, 10).map(user => (
-                      <option key={user.userId} value={user.userId}>
-                        {user.userName}({user.loginId})
-                      </option>
-                    ))}
-                  </Select>
-                  <SearchButton onClick={openUserSearchModal}>
-                    🔍 검색
-                  </SearchButton>
-                </CreatorRow>
+                <div>
+                  {selectedUser ? (
+                    <SelectedUserDisplay>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div>
+                          <SelectedUserText>{selectedUser.userName}</SelectedUserText>
+                          <SelectedUserId>{selectedUser.loginId}</SelectedUserId>
+                        </div>
+                        <ClearButton onClick={clearSelectedUser}>
+                          ✕
+                        </ClearButton>
+                      </div>
+                    </SelectedUserDisplay>
+                  ) : (
+                    <div style={{ 
+                      padding: 'var(--spacing-medium)', 
+                      border: '2px dashed #e0e0e0', 
+                      borderRadius: '8px',
+                      textAlign: 'center',
+                      color: '#999'
+                    }}>
+                      사용자를 선택해주세요
+                    </div>
+                  )}
+                  <div style={{ marginTop: 'var(--spacing-medium)' }}>
+                    <SearchButton onClick={openUserSearchModal} style={{ width: '100%' }}>
+                      🔍 사용자 검색
+                    </SearchButton>
+                  </div>
+                </div>
               )}
               
               <div style={{ marginTop: 'var(--spacing-medium)' }}>
@@ -688,8 +764,8 @@ function UploadFilePage() {
             />
             
             <UserList>
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map(user => (
+              {getPaginatedUsers().length > 0 ? (
+                getPaginatedUsers().map(user => (
                   <UserItem key={user.userId} onClick={() => selectUserFromModal(user)}>
                     <UserName>{user.userName}</UserName>
                     <UserId>{user.loginId}</UserId>
@@ -705,6 +781,48 @@ function UploadFilePage() {
                 </div>
               )}
             </UserList>
+            
+            {totalPages > 1 && (
+              <PaginationContainer>
+                <PageButton 
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  이전
+                </PageButton>
+                
+                {/* 5개씩 그룹으로 나누는 페이징 로직 */}
+                {(() => {
+                  const pages = [];
+                  const pagesPerGroup = 5;
+                  const currentGroup = Math.ceil(currentPage / pagesPerGroup);
+                  const startPage = (currentGroup - 1) * pagesPerGroup + 1;
+                  const endPage = Math.min(currentGroup * pagesPerGroup, totalPages);
+                  
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <PageButton
+                        key={i}
+                        onClick={() => handlePageChange(i)}
+                        active={currentPage === i}
+                      >
+                        {i}
+                      </PageButton>
+                    );
+                  }
+                  
+                  return pages;
+                })()}
+                
+                <PageButton 
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  다음
+                </PageButton>
+                
+              </PaginationContainer>
+            )}
           </ModalContent>
         </ModalOverlay>
       )}
