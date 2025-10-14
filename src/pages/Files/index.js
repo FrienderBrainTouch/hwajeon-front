@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import Header from '../../components/common/Header';
-import { getAllMusicFiles, deleteMusicFile, updateMusicTitle } from '../../apis/music';
+import { getAllMusicFiles, deleteMusicFile, updateMusicTitle, searchMusicByKeywords } from '../../apis/music';
 
 const MainContainer = styled.div`
   width: 100%;
@@ -264,9 +264,13 @@ function FilesPage() {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [pageSize] = useState(10);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // 음악 파일 목록 가져오기
+  // 음악 파일 목록 가져오기 (검색 모드가 아닐 때만)
   useEffect(() => {
+    if (isSearchMode) return; // 검색 모드일 때는 실행하지 않음
+    
     const fetchMusicFiles = async () => {
       try {
         const musicData = await getAllMusicFiles(currentPage, pageSize);
@@ -283,7 +287,7 @@ function FilesPage() {
     };
 
     fetchMusicFiles();
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, isSearchMode]);
 
   // 검색 필터링
   useEffect(() => {
@@ -314,8 +318,47 @@ function FilesPage() {
     setFilteredMusicFiles(filtered);
   }, [musicFiles, searchTerm]);
 
-  const handleSearch = () => {
-    // 검색 로직은 이미 useEffect에서 처리됨
+
+  const handleSearch = async () => {
+    const term = searchTerm.trim();
+    
+    if (!term) {
+      // 검색어가 없으면 일반 모드로 전환
+      setIsSearchMode(false);
+      setCurrentPage(0);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      setIsSearchMode(true);
+      
+      // 전체 검색 API 사용
+      const searchResults = await searchMusicByKeywords(term);
+      
+      // 검색 결과를 파일 관리 형식에 맞게 변환
+      const formattedResults = searchResults.map(item => ({
+        musicId: item.musicId,
+        title: item.title,
+        owner: item.owner
+      }));
+      
+      setFilteredMusicFiles(formattedResults);
+      setTotalPages(0); // 검색 모드에서는 페이징 비활성화
+      
+    } catch (error) {
+      console.error('검색 실패:', error);
+      alert('검색에 실패했습니다.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setIsSearchMode(false);
+    setCurrentPage(0);
+    setFilteredMusicFiles(musicFiles);
   };
 
   const handleMusicClick = (music) => {
@@ -417,8 +460,20 @@ function FilesPage() {
               placeholder="음악 제목 또는 작곡가 이름으로 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch();
+                }
+              }}
             />
-            <SearchButton onClick={handleSearch}>검색</SearchButton>
+            <SearchButton onClick={handleSearch} disabled={isSearching}>
+              {isSearching ? '검색중...' : '검색'}
+            </SearchButton>
+            {isSearchMode && (
+              <SearchButton onClick={handleClearSearch} style={{ marginLeft: '8px', backgroundColor: '#f5f5f5', color: '#666' }}>
+                초기화
+              </SearchButton>
+            )}
           </SearchSection>
 
           <MusicTable>
@@ -446,8 +501,8 @@ function FilesPage() {
             )}
           </MusicTable>
 
-          {/* 페이지네이션 */}
-          {totalPages > 1 && (
+          {/* 페이지네이션 - 검색 모드가 아닐 때만 표시 */}
+          {!isSearchMode && totalPages > 1 && (
             <Pagination>
               <PageButton
                 onClick={handlePrevPage}

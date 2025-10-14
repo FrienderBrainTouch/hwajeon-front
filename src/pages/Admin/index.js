@@ -3,14 +3,7 @@ import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Header from '../../components/common/Header';
-
-// API URL 설정
-const getApiBaseUrl = () => {
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:8080';
-  }
-  return process.env.REACT_APP_API_BASE_URL || 'https://api.hwajeon.store';
-};
+import { API_BASE_URL } from '../../apis/config';
 
 const MainContainer = styled.div`
   width: 100%;
@@ -153,7 +146,7 @@ function AdminPage() {
     const adminLogout = async () => {
       try {
         // 백엔드 로그아웃 API 호출
-        const response = await fetch(`${getApiBaseUrl()}/api/auth/logout`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

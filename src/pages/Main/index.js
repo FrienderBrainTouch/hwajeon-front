@@ -158,24 +158,6 @@ const EmptyStateText = styled.p`
   line-height: 1.5;
 `;
 
-const UploadButton = styled.button`
-  background-color: var(--color-accent);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-family: 'Noto Sans KR', sans-serif;
-  font-size: var(--font-size-normal);
-  font-weight: 500;
-  cursor: pointer;
-  margin-top: var(--spacing-medium);
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: #1976d2;
-  }
-`;
-
 const LoadingContainer = styled.div`
   width: 100%;
   padding: var(--spacing-large);
@@ -338,15 +320,10 @@ function MainPage() {
   }
 
   // 빈 상태 컴포넌트
-  const EmptyState = ({ title, description, showUploadButton = false }) => (
+  const EmptyState = ({ title, description }) => (
     <EmptyStateContainer>
       <EmptyStateTitle>{title}</EmptyStateTitle>
       <EmptyStateText>{description}</EmptyStateText>
-      {showUploadButton && (
-        <UploadButton onClick={() => navigate('/mypage/upload')}>
-          음악 업로드하기
-        </UploadButton>
-      )}
     </EmptyStateContainer>
   );
 
@@ -376,8 +353,7 @@ function MainPage() {
         ) : (
           <EmptyState 
             title="아직 등록된 음악이 없어요" 
-            description="첫 번째 음악을 업로드해보세요!"
-            showUploadButton={true}
+            description="음악을 추가하면 여기에 표시됩니다."
           />
         )}
       </PlaylistSection>
