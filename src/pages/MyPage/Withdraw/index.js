@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../../components/common/Header';
 import { useAuth } from '../../../context/AuthContext';
+import { withdrawUser } from '../../../apis/users';
 
 const Content = styled.div`
   padding-top: 60px;
@@ -75,17 +76,18 @@ const WithdrawButton = styled(Button)`
 
 function WithdrawPage() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, userId } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // TODO: 회원 탈퇴 API 호출
-      // await withdrawUser();
+      // 회원 탈퇴 API 호출 (userId를 Number로 변환)
+      await withdrawUser(Number(userId));
       logout();
       navigate('/login');
     } catch (err) {
       console.error('Withdraw error:', err);
+      alert('회원탈퇴에 실패했습니다. 다시 시도해주세요.');
     }
   };
 

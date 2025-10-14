@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!token);
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [showTokenExpiredModal, setShowTokenExpiredModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
   const [isTokenExpiredHandling, setIsTokenExpiredHandling] = useState(false); // 토큰 만료 처리 중 상태
@@ -37,6 +38,7 @@ export const AuthProvider = ({ children }) => {
     if (!accessToken) {
       setUserRole(null);
       setUserName(null);
+      setUserId(null);
       setIsLoading(false);
       return;
     }
@@ -48,6 +50,9 @@ export const AuthProvider = ({ children }) => {
       }
       if (decoded.realName || decoded.username) {
         setUserName(decoded.realName || decoded.username);
+      }
+      if (decoded.sub) {
+        setUserId(decoded.sub);
       }
     }
     setIsLoading(false);
@@ -199,6 +204,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated,
         userRole,
         userName,
+        userId,
         isLoading,
         login,
         logout,

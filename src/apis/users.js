@@ -95,3 +95,6 @@ export const updateUserName = async (userId, newName) => {
     return { success: true, message: '이름이 성공적으로 변경되었습니다.' };
   }
 };
+
+// 회원탈퇴 (본인 계정 삭제) - deleteUser와 동일한 기능
+export const withdrawUser = deleteUser;
