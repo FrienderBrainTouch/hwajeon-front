@@ -90,7 +90,7 @@ const MusicGrid = styled.div`
   gap: var(--spacing-medium);
   margin-bottom: var(--spacing-medium);
   overflow-x: auto;
-  
+
   /* 스크롤바 숨기기 */
   &::-webkit-scrollbar {
     display: none;
@@ -123,7 +123,8 @@ const AlbumCover = styled.div`
   overflow: hidden;
   background-color: #f0f0f0;
   margin-bottom: var(--spacing-small);
-  background-image: ${props => props.imageUrl ? `url(${props.imageUrl})` : 'url(/icons/music_thumbnail.svg)'};
+  background-image: ${(props) =>
+    props.imageUrl ? `url(${props.imageUrl})` : 'url(/icons/music_thumbnail.svg)'};
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -180,7 +181,7 @@ const MenuItem = styled.div`
   align-items: center;
   padding: 16px 0;
   cursor: pointer;
-  border-bottom: 1px solid #F1F1F1;
+  border-bottom: 1px solid #f1f1f1;
 
   &:last-child {
     border-bottom: none;
@@ -209,6 +210,20 @@ const MenuSectionTitle = styled.h3`
   font-weight: 600;
   color: var(--color-text-primary);
   margin: 0 0 12px 0;
+`;
+
+// 외부 문서 링크용 스타일
+const ExternalLink = styled.a`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #f1f1f1;
+  text-decoration: none;
+
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
 const LogoutButton = styled.button`
@@ -261,10 +276,10 @@ function MyPage() {
     try {
       const response = await getMyMusic();
       const musicData = response.data || response;
-      
+
       // 이미지가 비어있는 경우 랜덤 이미지 할당
       const musicWithImages = assignRandomImagesToMusicList(musicData);
-      
+
       // 4개만 반환
       return musicWithImages.slice(0, 4);
     } catch (error) {
@@ -317,9 +332,7 @@ function MyPage() {
   const EmptyState = () => (
     <EmptyStateContainer>
       <EmptyStateTitle>추가한 음악이 없습니다</EmptyStateTitle>
-      <EmptyStateText>
-        첫 번째 음악을 업로드해보세요!
-      </EmptyStateText>
+      <EmptyStateText>첫 번째 음악을 업로드해보세요!</EmptyStateText>
     </EmptyStateContainer>
   );
 
@@ -331,30 +344,34 @@ function MyPage() {
           <UserInfoSection>
             <ProfileIcon />
             <UserInfoWrapper>
-              <UserName>{userName || "사용자"}</UserName>
+              <UserName>{userName || '사용자'}</UserName>
               {userRole === 'TEACHER' && (
-                <UploadButton onClick={handleUploadClick}>
-                  파일 업로드
-                </UploadButton>
+                <UploadButton onClick={handleUploadClick}>파일 업로드</UploadButton>
               )}
             </UserInfoWrapper>
           </UserInfoSection>
-          
+
           <SectionHeader>
             <SectionTitle>나의 음악</SectionTitle>
             <ViewMoreButton onClick={() => navigate('/playlist/my-music')}>
               더보기 {'>'}
             </ViewMoreButton>
           </SectionHeader>
-          
+
           {loading ? (
-            <div style={{ textAlign: 'center', padding: 'var(--spacing-large)', color: 'var(--color-text-secondary)' }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: 'var(--spacing-large)',
+                color: 'var(--color-text-secondary)',
+              }}
+            >
               음악 목록을 불러오는 중...
             </div>
           ) : myMusic.length > 0 ? (
             <>
               <MusicGrid>
-                {myMusic.map(music => (
+                {myMusic.map((music) => (
                   <MusicCard key={music.musicId || music.id}>
                     <AlbumCover imageUrl={music.imageUrl} />
                     <SongTitle>{music.title}</SongTitle>
@@ -377,6 +394,28 @@ function MyPage() {
                 <MenuTitle>회원탈퇴</MenuTitle>
                 <ArrowIcon />
               </MenuItem>
+            </MenuList>
+          </MenuSection>
+
+          <MenuSection>
+            <MenuSectionTitle>정책 및 약관</MenuSectionTitle>
+            <MenuList>
+              <ExternalLink
+                href="https://citrine-baron-922.notion.site/28cb85ab629380b59aa3fdac544a5cae"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MenuTitle>개인정보처리방침</MenuTitle>
+                <ArrowIcon />
+              </ExternalLink>
+              <ExternalLink
+                href="https://citrine-baron-922.notion.site/28cb85ab6293806899aceeea9f4b864b?pvs=143"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MenuTitle>이용약관</MenuTitle>
+                <ArrowIcon />
+              </ExternalLink>
             </MenuList>
           </MenuSection>
           <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
