@@ -66,7 +66,12 @@ export const deleteUser = async (userId) => {
     throw new Error('사용자 삭제에 실패했습니다.');
   }
   
-  return response.json();
+  // 응답 본문이 비어있을 수 있으므로 안전하게 처리
+  const responseText = await response.text();
+  if (responseText.trim()) {
+    return JSON.parse(responseText);
+  }
+  return { success: true };
 };
 
 // 사용자 이름 변경
