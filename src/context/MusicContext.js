@@ -83,28 +83,28 @@ export const MusicProvider = ({ children }) => {
   }, [loadPlaylistFromBackend, isAuthenticated]);
 
   // 페이지 가시성 API를 사용하여 앱이 백그라운드로 갈 때 음악 재생 정지
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && isPlaying) {
-        console.log('앱이 백그라운드로 전환됨 - 음악 재생 정지');
-        audioRef.current?.pause();
-        setIsPlaying(false);
-      }
-    };
+  // useEffect(() => {
+  //   const handleVisibilityChange = () => {
+  //     if (document.hidden && isPlaying) {
+  //       console.log('앱이 백그라운드로 전환됨 - 음악 재생 정지');
+  //       audioRef.current?.pause();
+  //       setIsPlaying(false);
+  //     }
+  //   };
   
-    // Page Visibility API 지원 확인
-    if (typeof document.hidden !== 'undefined') {
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-    } else if (typeof document.webkitHidden !== 'undefined') {
-      // 구형 WebView용 webkit prefix
-      document.addEventListener('webkitvisibilitychange', handleVisibilityChange);
-    }
+  //   // Page Visibility API 지원 확인
+  //   if (typeof document.hidden !== 'undefined') {
+  //     document.addEventListener('visibilitychange', handleVisibilityChange);
+  //   } else if (typeof document.webkitHidden !== 'undefined') {
+  //     // 구형 WebView용 webkit prefix
+  //     document.addEventListener('webkitvisibilitychange', handleVisibilityChange);
+  //   }
   
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      document.removeEventListener('webkitvisibilitychange', handleVisibilityChange);
-    };
-  }, [isPlaying]);
+  //   return () => {
+  //     document.removeEventListener('visibilitychange', handleVisibilityChange);
+  //     document.removeEventListener('webkitvisibilitychange', handleVisibilityChange);
+  //   };
+  // }, [isPlaying]);
 
   // 재생목록에 곡 추가 (기존 로직 유지)
   const addToPlaylist = (track) => {
