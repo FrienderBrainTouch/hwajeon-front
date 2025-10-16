@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../../components/common/Header';
 import { useAuth } from '../../../context/AuthContext';
+import { API_BASE_URL } from '../../../apis/config';
 
 const Content = styled.div`
   padding-top: 60px;
@@ -80,9 +81,9 @@ function WithdrawPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // 회원 탈퇴 API 직접 호출 (JSON 파싱 에러 방지)
+      // 회원 탈퇴 API 직접 호출 (환경별 API URL 사용)
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'https://api.100youth.kr'}/api/users/${Number(userId)}`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/${Number(userId)}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
