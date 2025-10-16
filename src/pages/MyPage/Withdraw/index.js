@@ -91,26 +91,49 @@ function WithdrawPage() {
         credentials: 'include',
       });
       
-      if (!response.ok) {
-        throw new Error('사용자 삭제에 실패했습니다.');
+      console.log('회원탈퇴 API 응답:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+      
+      // 성공 응답 확인 (200, 204 등)
+      if (response.status === 200 || response.status === 204 || response.ok) {
+        // 탈퇴 성공 후 로컬 상태 정리
+        console.log('탈퇴 성공 - 로컬 상태 정리 시작');
+        
+        // localStorage와 sessionStorage 정리
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // 탈퇴 성공 메시지 표시
+        alert('회원탈퇴가 완료되었습니다.');
+        
+        // 여러 방법으로 로그인 페이지 이동 시도
+        console.log('로그인 페이지로 이동 시도...');
+        
+        // 방법 1: window.location.replace (뒤로가기 방지)
+        window.location.replace('/login');
+        
+        // 방법 2: 만약 위 방법이 안 되면 강제 새로고침
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 100);
+        
+        // 방법 3: 최후의 수단 - 전체 페이지 새로고침
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+        
+        return;
       }
       
-      // 탈퇴 성공 후 로컬 상태 정리
-      console.log('탈퇴 성공 - 로컬 상태 정리 시작');
-      
-      // localStorage와 sessionStorage 정리
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // 탈퇴 성공 메시지 표시
-      alert('회원탈퇴가 완료되었습니다.');
-      
-      // 강제로 로그인 페이지로 이동 (새로고침 포함)
-      window.location.href = '/login';
+      // 실패 응답 처리
+      throw new Error(`회원탈퇴에 실패했습니다. (상태코드: ${response.status})`);
       
     } catch (err) {
       console.error('Withdraw error:', err);
-      alert('회원탈퇴에 실패했습니다. 다시 시도해주세요.');
+      alert(err.message || '회원탈퇴에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
