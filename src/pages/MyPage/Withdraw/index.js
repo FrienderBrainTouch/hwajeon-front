@@ -3,7 +3,6 @@ import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../../components/common/Header';
 import { useAuth } from '../../../context/AuthContext';
-import { withdrawUser } from '../../../apis/users';
 
 const Content = styled.div`
   padding-top: 60px;
@@ -76,15 +75,27 @@ const WithdrawButton = styled(Button)`
 
 function WithdrawPage() {
   const navigate = useNavigate();
-  const { logout, userId } = useAuth();
+  const { userId } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // 회원 탈퇴 API 호출 (userId를 Number로 변환)
-      await withdrawUser(Number(userId));
+      // 회원 탈퇴 API 직접 호출 (JSON 파싱 에러 방지)
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'https://api.100youth.kr'}/api/users/${Number(userId)}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        credentials: 'include',
+      });
       
-      // 탈퇴 성공 후 로컬 상태만 정리 (로그아웃 API 호출하지 않음)
+      if (!response.ok) {
+        throw new Error('사용자 삭제에 실패했습니다.');
+      }
+      
+      // 탈퇴 성공 후 로컬 상태 정리
       console.log('탈퇴 성공 - 로컬 상태 정리 시작');
       
       // localStorage와 sessionStorage 정리
@@ -94,11 +105,8 @@ function WithdrawPage() {
       // 탈퇴 성공 메시지 표시
       alert('회원탈퇴가 완료되었습니다.');
       
-      // 완전한 페이지 새로고침으로 로그인 페이지로 이동
-      // replace를 사용하여 히스토리에서 현재 페이지를 제거
-      setTimeout(() => {
-        window.location.replace('/login');
-      }, 100);
+      // 강제로 로그인 페이지로 이동 (새로고침 포함)
+      window.location.href = '/login';
       
     } catch (err) {
       console.error('Withdraw error:', err);
