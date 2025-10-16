@@ -55,10 +55,13 @@ const onTokenRefreshed = (newToken) => {
 export const handleApiResponse = async (response) => {
   if (response.status === 401) {
     try {
-      const errorData = await response.json();
-      if (errorData.error === 'token_expired' || errorData.message === 'token_expired') {
-        console.log('토큰이 만료되었습니다. 토큰 재발급을 시도합니다.');
-        return { isTokenExpired: true, shouldRefresh: true, response };
+      const responseText = await response.text();
+      if (responseText.trim()) {
+        const errorData = JSON.parse(responseText);
+        if (errorData.error === 'token_expired' || errorData.message === 'token_expired') {
+          console.log('토큰이 만료되었습니다. 토큰 재발급을 시도합니다.');
+          return { isTokenExpired: true, shouldRefresh: true, response };
+        }
       }
     } catch (error) {
       console.error('에러 응답 파싱 실패:', error);
