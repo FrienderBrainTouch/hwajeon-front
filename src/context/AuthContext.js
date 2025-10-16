@@ -169,22 +169,30 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAutoLogin = async () => {
       const autoLoginEnabled = localStorage.getItem('autoLogin') === 'true';
+      const accessToken = localStorage.getItem('accessToken');
 
-      if (autoLoginEnabled) {
-        try {
-          console.log('자동 로그인 시도 중...');
-          const newTokenData = await refreshAccessToken();
-          if (newTokenData.accessToken) {
-            console.log('자동 로그인 성공');
-            login(newTokenData.accessToken);
-          }
-        } catch (error) {
-          console.log('자동 로그인 실패:', error);
-          // 자동 로그인 실패 시 자동 로그인 설정 해제
-          localStorage.removeItem('autoLogin');
-          setIsLoading(false);
+      // 토큰이 없으면 자동 로그인 시도하지 않음
+      if (!autoLoginEnabled || !accessToken) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        console.log('자동 로그인 시도 중...');
+        const newTokenData = await refreshAccessToken();
+        if (newTokenData.accessToken) {
+          console.log('자동 로그인 성공');
+          login(newTokenData.accessToken);
         }
-      } else {
+      } catch (error) {
+        console.log('자동 로그인 실패:', error);
+        // 자동 로그인 실패 시 모든 인증 관련 데이터 정리
+        localStorage.clear();
+        sessionStorage.clear();
+        setToken(null);
+        setIsAuthenticated(false);
+        setUserRole(null);
+        setUserName(null);
         setIsLoading(false);
       }
     };

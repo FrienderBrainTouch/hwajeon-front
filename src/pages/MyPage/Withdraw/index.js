@@ -83,8 +83,23 @@ function WithdrawPage() {
     try {
       // 회원 탈퇴 API 호출 (userId를 Number로 변환)
       await withdrawUser(Number(userId));
-      logout();
-      navigate('/login');
+      
+      // 탈퇴 성공 후 로컬 상태만 정리 (로그아웃 API 호출하지 않음)
+      console.log('탈퇴 성공 - 로컬 상태 정리 시작');
+      
+      // localStorage와 sessionStorage 정리
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // 탈퇴 성공 메시지 표시
+      alert('회원탈퇴가 완료되었습니다.');
+      
+      // 완전한 페이지 새로고침으로 로그인 페이지로 이동
+      // replace를 사용하여 히스토리에서 현재 페이지를 제거
+      setTimeout(() => {
+        window.location.replace('/login');
+      }, 100);
+      
     } catch (err) {
       console.error('Withdraw error:', err);
       alert('회원탈퇴에 실패했습니다. 다시 시도해주세요.');
