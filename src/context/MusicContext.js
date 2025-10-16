@@ -91,11 +91,18 @@ export const MusicProvider = ({ children }) => {
         setIsPlaying(false);
       }
     };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
+  
+    // Page Visibility API 지원 확인
+    if (typeof document.hidden !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    } else if (typeof document.webkitHidden !== 'undefined') {
+      // 구형 WebView용 webkit prefix
+      document.addEventListener('webkitvisibilitychange', handleVisibilityChange);
+    }
+  
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('webkitvisibilitychange', handleVisibilityChange);
     };
   }, [isPlaying]);
 
