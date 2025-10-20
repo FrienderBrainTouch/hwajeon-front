@@ -1,6 +1,6 @@
-// Last updated: 2025-10-10T05:27:06.594Z
+// Last updated: 2025-10-20T02:55:20.260Z
 // 배포 시마다 이 버전을 변경하여 캐시 무효화
-const CACHE_NAME = 'hwajeon-music-feature/auto-login-a37f584-20251010';
+const CACHE_NAME = 'hwajeon-music-prod-80a6eb1-20251020';
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
