@@ -1,6 +1,6 @@
 // 환경별 API 주소 설정
 const getApiBaseUrl = () => {
-  // 개발 환경 (npm start) - 로컬 백엔드 사용
+  // 개발 환경 (npm start) - 로컬 백엔드 사용 GOGO
   if (process.env.NODE_ENV === 'development') {
     return 'http://localhost:8080';
   }
