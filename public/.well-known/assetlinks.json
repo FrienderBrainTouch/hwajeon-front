@@ -3,6 +3,6 @@
   "target": {
     "namespace": "android_app",
     "package_name": "com.youth100.music",
-    "sha256_cert_fingerprints": ["DF:C9:D7:3C:D7:29:E4:F2:3F:1A:FA:A6:16:CE:48:E2:A1:75:B1:CB:D1:AF:AE:A1:8C:B3:98:12:EE:F7:34:42"]
+    "sha256_cert_fingerprints": ["A6:07:E5:BF:5C:F9:DB:2D:A2:93:40:E3:A0:2B:FD:44:4E:08:F5:48:EA:78:CC:95:F5:90:71:DD:AC:F4:5A:8E"]
   }
 }] 
