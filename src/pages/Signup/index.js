@@ -296,7 +296,16 @@ function SignupPage() {
                   checked={terms.service}
                   onChange={handleTermsChange}
                 />
-                <TermsLabel>서비스 이용약관 동의 (필수)</TermsLabel>
+                <TermsLabel>
+                  <a 
+                    href="https://citrine-baron-922.notion.site/28cb85ab6293806899aceeea9f4b864b" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ color: 'inherit', textDecoration: 'underline' }}
+                  >
+                    서비스 이용약관 동의 (필수)
+                  </a>
+                </TermsLabel>
               </TermsCheckbox>
               <TermsCheckbox>
                 <Checkbox
@@ -305,7 +314,16 @@ function SignupPage() {
                   checked={terms.privacy}
                   onChange={handleTermsChange}
                 />
-                <TermsLabel>개인정보 처리방침 동의 (필수)</TermsLabel>
+                <TermsLabel>
+                  <a 
+                    href="https://citrine-baron-922.notion.site/28cb85ab629380b59aa3fdac544a5cae" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ color: 'inherit', textDecoration: 'underline' }}
+                  >
+                    개인정보 처리방침 동의 (필수)
+                  </a>
+                </TermsLabel>
               </TermsCheckbox>
             </TermsContainer>
             <SignupButton type="submit">가입하기</SignupButton>
