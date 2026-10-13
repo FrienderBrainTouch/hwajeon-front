@@ -126,5 +126,5 @@ export const changePassword = async (oldPassword, newPassword, confirmPassword) 
     throw new Error('Password change failed');
   }
 
-  return response.json();
+  // 백엔드가 빈 200을 반환하므로 json() 파싱하지 않음
 };

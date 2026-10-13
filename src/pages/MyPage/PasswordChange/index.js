@@ -95,16 +95,14 @@ function PasswordChangePage() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [formData, setFormData] = useState({
-    currentPassword: '',
+    oldPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
-  const [, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    setError('');
   };
 
   const isPasswordMatch = formData.newPassword && formData.newPassword === formData.confirmPassword;
@@ -113,13 +111,13 @@ function PasswordChangePage() {
     e.preventDefault();
     
     if (!isPasswordMatch) {
-      setError('새 비밀번호가 일치하지 않습니다.');
+      alert('새 비밀번호가 일치하지 않습니다.');
       return;
     }
 
     try {
       await changePassword(
-        formData.currentPassword,
+        formData.oldPassword,
         formData.newPassword,
         formData.confirmPassword
       );
@@ -129,7 +127,7 @@ function PasswordChangePage() {
       alert('비밀번호가 변경되었습니다. 새로운 비밀번호로 다시 로그인해주세요.');
       navigate('/login');
     } catch (err) {
-      setError('비밀번호 변경에 실패했습니다.');
+      alert('비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.');
       console.error('Password change error:', err);
     }
   };
