@@ -1,3 +1,12 @@
+# hwajeon-front (청춘백년 음악 웹)
+
+`https://music.100youth.kr` — 청춘백년 안드로이드 앱(`bublle-wrap-build`, TWA)이 이 웹을 그대로 띄웁니다.
+API는 `hawjeon`(`https://api.100youth.kr`)을 사용합니다. `prod` push 시 `/var/www/music_app`로 자동 배포됩니다.
+
+전체 구성·계정·배포·관리 방법은 **[통합_운영_문서.md](./통합_운영_문서.md)** 참고.
+
+---
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
